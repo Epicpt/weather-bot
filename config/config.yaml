@@ -1,0 +1,13 @@
+telegram:
+  token: "${TELEGRAM_BOT_TOKEN}"
+
+weather:
+  api_key: "${OPENWEATHER_API_KEY}"
+
+database:
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  dbname: "${DB_NAME}"
+
+redis:
+  addr: "${REDIS_ADDR}"
