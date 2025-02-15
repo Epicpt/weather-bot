@@ -1,7 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
+
+	"weather-bot/internal/cache"
+	"weather-bot/internal/database"
+	"weather-bot/internal/handlers"
 	"weather-bot/internal/logger"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -17,6 +22,27 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error loading.env file")
 	}
+
+	// Подключаемся к БД
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	dsn := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", dbUser, dbPass, dbPort, dbName)
+	postgres, err := database.Init(dsn)
+	defer postgres.Close()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Ошибка подключения к БД: %v", err)
+	}
+	log.Info().Msg("Connected to PostgreSQL")
+
+	// Инициализация Redis
+	redisdb := cache.Init(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASSWORD"))
+	defer redisdb.Close()
+	log.Info().Msg("Connected to Redis")
+
+	db := database.NewDatabase(postgres)
+	rdb := cache.NewCache(redisdb)
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
@@ -40,17 +66,7 @@ func main() {
 			continue
 		}
 
-		log.Info().Msgf("Получено сообщение от %s: %s", update.Message.From.UserName, update.Message.Text)
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, "+update.Message.From.FirstName+"! Обновляю функционал бота!")
-		bot.Send(msg)
-		// Отправляем ответный текст в чат
-		//...
-		// Вы можете добавлять другие действия в зависимости от входящего сообщения
-		//...
-		// Обработка ошибок
-		//...
-		// Остановка бота при получении конфигурации /stop
+		handlers.Update(bot, update, db, rdb)
 	}
 
 }
