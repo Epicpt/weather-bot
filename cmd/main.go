@@ -8,6 +8,7 @@ import (
 	"weather-bot/internal/database"
 	"weather-bot/internal/handlers"
 	"weather-bot/internal/logger"
+	"weather-bot/internal/notification"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
@@ -43,6 +44,21 @@ func main() {
 
 	db := database.NewDatabase(postgres)
 	rdb := cache.NewCache(redisdb)
+
+	// Загрузка городов из JSON файла в Redis
+	jsonFile := "../config/enriched_cities.json"
+	err = rdb.LoadCities(jsonFile)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error loading cities to Redis")
+	}
+	log.Info().Msg("Cities loaded to Redis")
+
+	// Запускаем фоновые задачи уведомлений
+	err = notification.Init(rdb, db)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error initializing background tasks")
+	}
+	log.Info().Msg("Background tasks initialized")
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
