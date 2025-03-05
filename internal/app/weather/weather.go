@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strconv"
 	"time"
-	"weather-bot/internal/cache"
-	"weather-bot/internal/database"
+	"weather-bot/internal/app/services"
+	"weather-bot/internal/models"
 
 	"github.com/briandowns/openweathermap"
 	"github.com/rs/zerolog/log"
@@ -21,25 +21,19 @@ var dayParts = map[string][]int{
 	"night":   {0, 3, 6},
 }
 
-func Get(cityID string, redisClient *cache.Cache, db *database.Database) (*cache.ProcessedForecast, error) {
+func Get(cityID string) (*models.ProcessedForecast, error) {
 	cityId, err := strconv.Atoi(cityID)
 	if err != nil {
 		return nil, fmt.Errorf("Неверный формат ID города: %v", err)
 	}
 	// Проверяем кеш
-	if forecast, err := redisClient.GetWeather(cityId); err == nil {
+	if forecast, err := services.Global().GetWeather(cityId); err == nil {
 		return forecast, nil
 	}
-	log.Error().Err(err).Msg("не удалось получить forecast из кеша")
-
-	// Проверяем БД
-	if forecast, err := db.GetWeather(cityId); err == nil {
-		return forecast, nil
-	}
-	log.Error().Err(err).Msg("не удалось получить forecast из БД")
+	log.Warn().Msg("не удалось получить forecast из хранилищ")
 
 	// Получаем прогноз из OpenWeather
-	processedForecast, err := GetNewWeather(cityId, redisClient, db)
+	processedForecast, err := GetNewWeather(cityId)
 	if err != nil {
 		return nil, fmt.Errorf("Не удалось получить погоду из OpenWeather: %v", err)
 	}
@@ -48,7 +42,7 @@ func Get(cityID string, redisClient *cache.Cache, db *database.Database) (*cache
 
 }
 
-func Update(cityIDs []string, redisClient *cache.Cache, db *database.Database) error {
+func Update(cityIDs []string) error {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
@@ -59,7 +53,7 @@ func Update(cityIDs []string, redisClient *cache.Cache, db *database.Database) e
 		}
 
 		<-ticker.C
-		_, err = GetNewWeather(cityId, redisClient, db)
+		_, err = GetNewWeather(cityId)
 		if err != nil {
 			return err
 		}
@@ -67,7 +61,7 @@ func Update(cityIDs []string, redisClient *cache.Cache, db *database.Database) e
 	return nil
 }
 
-func GetNewWeather(cityID int, redisClient *cache.Cache, db *database.Database) (*cache.ProcessedForecast, error) {
+func GetNewWeather(cityID int) (*models.ProcessedForecast, error) {
 	// Запрашиваем прогноз из OpenWeather
 	forecastData, err := fetchWeatherFromAPI(cityID)
 	if err != nil {
@@ -80,15 +74,11 @@ func GetNewWeather(cityID int, redisClient *cache.Cache, db *database.Database) 
 		return nil, err
 	}
 
-	// Сохраняем в кеш (на 48 часов)
-	if err = redisClient.SetWeather(cityID, processedForecast); err != nil {
-		return nil, err
+	// Сохраняем (на 25 часов)
+	if err = services.Global().SaveWeather(cityID, processedForecast); err != nil {
+		log.Error().Err(err).Msg("Error saving weather")
 	}
 
-	// Сохраняем в БД
-	if err = db.SetWeather(cityID, processedForecast); err != nil {
-		return nil, err
-	}
 	return processedForecast, nil
 }
 
@@ -108,15 +98,15 @@ func fetchWeatherFromAPI(cityID int) (*openweathermap.ForecastWeatherData, error
 	return owm, nil
 }
 
-func processWeatherData(forecast *openweathermap.ForecastWeatherData) (*cache.ProcessedForecast, error) {
+func processWeatherData(forecast *openweathermap.ForecastWeatherData) (*models.ProcessedForecast, error) {
 	forecastData, ok := forecast.ForecastWeatherJson.(*openweathermap.Forecast5WeatherData)
 	if !ok {
 		return nil, fmt.Errorf("не удалось преобразовать ForecastWeatherJson в Forecast5WeatherData")
 	}
 
 	// Создаём пустые карты для хранения прогноза
-	fullDayForecasts := make(map[string]cache.FullDayForecast)
-	var shortDayForecasts []cache.ShortDayForecast
+	fullDayForecasts := make(map[string]models.FullDayForecast)
+	var shortDayForecasts []models.ShortDayForecast
 
 	// Разбиваем прогноз по дням
 	daysData := make(map[string][]openweathermap.Forecast5WeatherList)
@@ -151,58 +141,22 @@ func processWeatherData(forecast *openweathermap.ForecastWeatherData) (*cache.Pr
 		shortDayForecasts = append(shortDayForecasts, processShortDayForecast(date, daysData[date]))
 	}
 
-	return &cache.ProcessedForecast{
+	return &models.ProcessedForecast{
 		FullDay:   fullDayForecasts,
 		ShortDays: shortDayForecasts,
 	}, nil
 }
 
-func processFullDayForecast(data []openweathermap.Forecast5WeatherList) cache.FullDayForecast {
+func processFullDayForecast(data []openweathermap.Forecast5WeatherList) models.FullDayForecast {
 
-	return cache.FullDayForecast{
+	return models.FullDayForecast{
 		Morning: calculateSummary(data, dayParts["morning"]),
 		Day:     calculateSummary(data, dayParts["day"]),
 		Evening: calculateSummary(data, dayParts["evening"]),
 	}
 }
 
-// Функция для вычисления средних значений
-func calculateSummary(data []openweathermap.Forecast5WeatherList, hours []int) cache.WeatherSummary {
-	var tempSum, feelsLikeSum, windSum float64
-	var count int
-	weatherCount := make(map[int]int)
-
-	for _, item := range data {
-		hour := time.Unix(int64(item.Dt), 0).UTC().Hour()
-		if contains(hours, hour) {
-			tempSum += item.Main.Temp
-			feelsLikeSum += item.Main.FeelsLike
-			windSum += item.Wind.Speed
-			count++
-
-			// Подсчёт доминирующей погоды
-			weatherCondition := item.Weather[0].ID
-			weatherCount[weatherCondition]++
-		}
-	}
-
-	// Выбираем самую частую погоду
-	dominantCondition, idCondition := getDominantCondition(weatherCount)
-
-	if count == 0 {
-		return cache.WeatherSummary{} // Если данных нет, возвращаем пустую структуру
-	}
-
-	return cache.WeatherSummary{
-		Temperature: tempSum / float64(count),
-		FeelsLike:   feelsLikeSum / float64(count),
-		WindSpeed:   windSum / float64(count),
-		Condition:   dominantCondition,
-		ConditionId: idCondition,
-	}
-}
-
-func processShortDayForecast(date string, data []openweathermap.Forecast5WeatherList) cache.ShortDayForecast {
+func processShortDayForecast(date string, data []openweathermap.Forecast5WeatherList) models.ShortDayForecast {
 	var tempSum float64
 	var count int
 	weatherCount := make(map[int]int)
@@ -220,23 +174,13 @@ func processShortDayForecast(date string, data []openweathermap.Forecast5Weather
 	dominantCondition, idCondition := getDominantCondition(weatherCount)
 
 	if count == 0 {
-		return cache.ShortDayForecast{} // Если данных нет, возвращаем пустую структуру
+		return models.ShortDayForecast{} // Если данных нет, возвращаем пустую структуру
 	}
 
-	return cache.ShortDayForecast{
+	return models.ShortDayForecast{
 		Date:        date,
 		Temperature: tempSum / float64(count),
 		Condition:   dominantCondition,
 		ConditionId: idCondition,
 	}
-}
-
-// Вспомогательная функция для проверки наличия элемента в слайсе
-func contains(slice []int, value int) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
 }

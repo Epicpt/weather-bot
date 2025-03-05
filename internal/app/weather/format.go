@@ -3,28 +3,28 @@ package weather
 import (
 	"fmt"
 	"time"
-	"weather-bot/internal/cache"
+	"weather-bot/internal/models"
 )
 
-func FormatDailyForecast(city string, forecast cache.FullDayForecast) string {
+func FormatDailyForecast(city string, forecast models.FullDayForecast) string {
 	message := fmt.Sprintf("🌤 <b>Прогноз на сегодня (%s):</b>\n", city)
 
-	if (forecast.Morning != cache.WeatherSummary{}) {
+	if (forecast.Morning != models.WeatherSummary{}) {
 		message += fmt.Sprintf("🥱 <b>Утро:</b> %.1f°C, ощущается как %.1f°C, %s %s\n",
 			forecast.Morning.Temperature, forecast.Morning.FeelsLike, forecast.Morning.Condition, getWeatherEmoji(forecast.Morning.ConditionId))
 	}
 
-	if (forecast.Day != cache.WeatherSummary{}) {
+	if (forecast.Day != models.WeatherSummary{}) {
 		message += fmt.Sprintf("🌞 <b>День:</b> %.1f°C, ощущается как %.1f°C, %s %s\n",
 			forecast.Day.Temperature, forecast.Day.FeelsLike, forecast.Day.Condition, getWeatherEmoji(forecast.Day.ConditionId))
 	}
 
-	if (forecast.Evening != cache.WeatherSummary{}) {
+	if (forecast.Evening != models.WeatherSummary{}) {
 		message += fmt.Sprintf("🌚 <b>Вечер:</b> %.1f°C, ощущается как %.1f°C, %s %s\n",
 			forecast.Evening.Temperature, forecast.Evening.FeelsLike, forecast.Evening.Condition, getWeatherEmoji(forecast.Evening.ConditionId))
 	}
 
-	if (forecast.Night != cache.WeatherSummary{}) {
+	if (forecast.Night != models.WeatherSummary{}) {
 		message += fmt.Sprintf("🌙 <b>Ночь:</b> %.1f°C, ощущается как %.1f°C, %s %s",
 			forecast.Night.Temperature, forecast.Night.FeelsLike, forecast.Night.Condition, getWeatherEmoji(forecast.Night.ConditionId))
 	}
@@ -56,7 +56,7 @@ func getWeatherEmoji(conditionId int) string {
 	}
 }
 
-func FormatFiveDayForecast(city string, forecasts []cache.ShortDayForecast) string {
+func FormatFiveDayForecast(city string, forecasts []models.ShortDayForecast) string {
 	message := fmt.Sprintf("🌤 <b>Прогноз на 5 дней (%s):</b>\n", city)
 
 	for _, f := range forecasts {

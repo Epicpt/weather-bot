@@ -3,72 +3,45 @@ package cache
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"weather-bot/internal/app/storage"
+	"weather-bot/internal/models"
 
 	"github.com/rs/zerolog/log"
 )
 
-type User struct {
-	TgID             int64   `json:"tg_id"`
-	Name             string  `json:"name"`
-	City             string  `json:"city"`
-	CityID           string  `json:"city_id"`
-	Region           *string `json:"federal_subject,omitempty"`
-	NotificationTime *string `json:"notification_time,omitempty"`
-	State            string  `json:"state"`
-}
+var _ storage.UserStorage = (*Cache)(nil)
 
-func NewUser(tgID int64, name string) *User {
-	return &User{
-		TgID: tgID,
-		Name: name,
-	}
-}
-
-func (c *Cache) SaveUserToRedis(u *User) error {
-	// Проверка инициализации клиента Redis
-	if c.c == nil {
-		return fmt.Errorf("Redis client is not initialized")
-	}
-
+func (c *Cache) SaveUser(u *models.User) error {
 	redisKey := fmt.Sprintf("user:%d", u.TgID)
 
 	// Формируем данные для записи
 	userData := map[string]interface{}{
+		"chat_id": u.ChatID,
 		"name":    u.Name,
 		"city":    u.City,
 		"city_id": u.CityID,
+		"region":  u.Region,
 		"state":   u.State,
-	}
-
-	if u.Region != nil {
-		userData["region"] = *u.Region
-	}
-
-	if u.NotificationTime != nil {
-		userData["notification_time"] = *u.NotificationTime
+		"sticker": u.Sticker,
 	}
 
 	// Сохраняем в Redis
-	err := c.c.HSet(context.Background(), redisKey, userData).Err()
+	err := c.client.HSet(context.Background(), redisKey, userData).Err()
 	if err != nil {
 		log.Error().Err(err).Msgf("Ошибка записи в Redis: %v", err)
 		return fmt.Errorf("ошибка записи в Redis: %w", err)
 	}
 
-	log.Info().Msgf("Пользователь сохранён в Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s, notification_time=%v",
-		u.TgID, u.Name, u.City, u.CityID, u.State, u.NotificationTime)
+	log.Info().Msgf("Пользователь сохранён в Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s, sticker=%v",
+		u.TgID, u.Name, u.City, u.CityID, u.State, u.Sticker)
 	return nil
 }
 
-func (c *Cache) GetUserFromRedis(userId int64) (*User, error) {
-	// Проверка инициализации клиента Redis
-	if c.c == nil {
-		return nil, fmt.Errorf("Redis клиент не инициализирован")
-	}
-
+func (c *Cache) GetUser(userId int64) (*models.User, error) {
 	redisKey := fmt.Sprintf("user:%d", userId)
 
-	userData, err := c.c.HGetAll(context.Background(), redisKey).Result()
+	userData, err := c.client.HGetAll(context.Background(), redisKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("ошибка получения данных из Redis: %w", err)
 	}
@@ -78,21 +51,28 @@ func (c *Cache) GetUserFromRedis(userId int64) (*User, error) {
 		return nil, nil
 	}
 
-	// Создаем и заполняем структуру User
-	user := &User{
-		TgID:   userId,
-		Name:   userData["name"],
-		City:   userData["city"],
-		CityID: userData["city_id"],
-		State:  userData["state"],
+	chatId, err := strconv.ParseInt(userData["chat_id"], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка преобразования числа из Redis: %w", err)
 	}
 
-	if federalSubject, ok := userData["federation_subject"]; ok {
-		user.Region = &federalSubject
+	stickerBool, err := strconv.ParseBool(userData["sticker"])
+	if err != nil {
+		return nil, fmt.Errorf("ошибка преобразования булевого значения из Redis: %w", err)
 	}
-	if notificationTime, ok := userData["notification_time"]; ok {
-		user.NotificationTime = &notificationTime
+
+	// Создаем и заполняем структуру User
+	user := &models.User{
+		TgID:    userId,
+		ChatID:  chatId,
+		Name:    userData["name"],
+		City:    userData["city"],
+		CityID:  userData["city_id"],
+		Region:  userData["region"],
+		State:   userData["state"],
+		Sticker: stickerBool,
 	}
+
 	log.Info().Msgf("Пользователь получен из Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s", user.TgID, user.Name, user.City, user.CityID, user.State)
 
 	return user, nil

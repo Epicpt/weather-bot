@@ -1,5 +1,12 @@
 package weather
 
+import (
+	"time"
+	"weather-bot/internal/models"
+
+	"github.com/briandowns/openweathermap"
+)
+
 var weatherMapping = map[int]string{
 	200: "Гроза с небольшим дождём", 201: "Гроза с дождём", 202: "Гроза с сильным дождём",
 	210: "Небольшая гроза", 211: "Гроза", 212: "Сильная гроза", 221: "Местами гроза", 230: "Гроза с лёгкой моросью",
@@ -57,4 +64,50 @@ func getDominantCondition(weatherList map[int]int) (string, int) {
 	}
 
 	return "Неизвестная погода", 0
+}
+
+// Функция для вычисления средних значений
+func calculateSummary(data []openweathermap.Forecast5WeatherList, hours []int) models.WeatherSummary {
+	var tempSum, feelsLikeSum, windSum float64
+	var count int
+	weatherCount := make(map[int]int)
+
+	for _, item := range data {
+		hour := time.Unix(int64(item.Dt), 0).UTC().Hour()
+		if contains(hours, hour) {
+			tempSum += item.Main.Temp
+			feelsLikeSum += item.Main.FeelsLike
+			windSum += item.Wind.Speed
+			count++
+
+			// Подсчёт доминирующей погоды
+			weatherCondition := item.Weather[0].ID
+			weatherCount[weatherCondition]++
+		}
+	}
+
+	// Выбираем самую частую погоду
+	dominantCondition, idCondition := getDominantCondition(weatherCount)
+
+	if count == 0 {
+		return models.WeatherSummary{} // Если данных нет, возвращаем пустую структуру
+	}
+
+	return models.WeatherSummary{
+		Temperature: tempSum / float64(count),
+		FeelsLike:   feelsLikeSum / float64(count),
+		WindSpeed:   windSum / float64(count),
+		Condition:   dominantCondition,
+		ConditionId: idCondition,
+	}
+}
+
+// Вспомогательная функция для проверки наличия элемента в слайсе
+func contains(slice []int, value int) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
