@@ -14,22 +14,21 @@ type Context struct {
 	text string
 }
 
-func Update(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+func Update(update tgbotapi.Update) {
 	// Получаем данные пользователя из хранилища
 	userService := services.Global()
 	user, err := userService.GetUser(update.Message.From.ID)
 	if err != nil {
-		log.Warn().Err(err).Msg("Ошибка при получении данных пользователя из хранилища")
+		log.Warn().Err(err).Int64("id", update.Message.From.ID).Str("user", update.Message.From.FirstName).Msg("Ошибка при получении данных пользователя из хранилища")
 	}
 
 	// Если пользователь новый, инициализируем его
 	if user == nil {
-		log.Info().Msgf("Новый пользователь %s!", update.Message.From.FirstName)
 		user = models.NewUser(update.Message.From.ID, update.Message.Chat.ID, update.Message.From.FirstName, string(StateNone))
+		log.Info().Int64("id", user.TgID).Msgf("Новый пользователь %s!", user.Name)
 	}
 
 	ctx := &Context{
-		bot:  bot,
 		user: user,
 		text: update.Message.Text,
 	}
@@ -38,7 +37,7 @@ func Update(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 
 	// Сохраняем обновленные данные пользователя
 	if err = userService.SaveUser(user); err != nil {
-		log.Error().Err(err).Msg("Ошибка при сохранении пользователя в хранилище")
+		log.Error().Err(err).Int64("id", user.TgID).Msg("Ошибка при сохранении пользователя в хранилище")
 	}
 
 }

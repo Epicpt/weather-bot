@@ -42,7 +42,7 @@ func ProcessWeatherUpdates() {
 			for _, message := range stream.Messages {
 				executeAt, err := strconv.ParseInt(message.Values["executeAt"].(string), 10, 64)
 				if err != nil {
-					log.Error().Err(err).Msg("Ошибка парсинга executeAt")
+					log.Error().Err(err).Int64("executeAt", executeAt).Msg("Ошибка парсинга executeAt")
 					continue
 				}
 

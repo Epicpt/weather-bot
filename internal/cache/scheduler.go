@@ -71,7 +71,7 @@ func (c *Cache) ScheduleUserNotification(userID int64, executeAt int64) error {
 
 	_, err := c.client.XAdd(ctx, &redis.XAddArgs{
 		Stream: "user_notifications",
-		Values: map[string]interface{}{
+		Values: map[string]any{
 			"user_id":   userID,
 			"executeAt": executeAt,
 		},

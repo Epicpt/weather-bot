@@ -35,8 +35,7 @@ func Init(url string) (*pgxpool.Pool, error) {
 func ensureTables(pool *pgxpool.Pool) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-			tg_id INT NOT NULL,
+			tg_id INT PRIMARY KEY,
 			chat_id INT NOT NULL,
             name TEXT NOT NULL,
 			city TEXT NOT NULL,
@@ -67,7 +66,7 @@ func ensureTables(pool *pgxpool.Pool) error {
 
 	for _, query := range queries {
 		if _, err := pool.Exec(context.Background(), query); err != nil {
-			log.Info().Msgf("Ошибка выполнения запроса: %s, ошибка: %v", query, err)
+			log.Debug().Msgf("Ошибка выполнения запроса: %s, ошибка: %v", query, err)
 			return err
 		}
 

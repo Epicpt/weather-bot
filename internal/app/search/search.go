@@ -15,7 +15,7 @@ func SearchCity(cityName string) ([]models.City, error) {
 
 	cities, err := services.Global().GetCities(cityName)
 	if err != nil {
-		log.Err(err).Msg("Ошибка получения городов из хранилищ")
+		log.Debug().Err(err).Msg("Ошибка получения городов из хранилищ")
 	}
 
 	if cities == nil || len(cities) == 0 {

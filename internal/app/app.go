@@ -82,7 +82,7 @@ func (a *App) Bootstrap() {
 
 	log.Info().Msg("Cities loaded to Redis and Database")
 
-	jobs.Init(a.Bot)
+	jobs.Init()
 }
 
 func (a *App) Run() {
@@ -97,7 +97,7 @@ func (a *App) Run() {
 			continue
 		}
 
-		handlers.Update(a.Bot, update)
+		handlers.Update(update)
 	}
 }
 

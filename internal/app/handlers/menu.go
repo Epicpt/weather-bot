@@ -25,7 +25,7 @@ func makeCityKeyboard(cities []models.City) tgbotapi.ReplyKeyboardMarkup {
 		row := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(text))
 		keyboard = append(keyboard, row)
 	}
-	keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Ввести название города заново.")))
+	keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("🔄 Ввести название города заново.")))
 	return tgbotapi.NewReplyKeyboard(keyboard...)
 }
 

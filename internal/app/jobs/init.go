@@ -1,11 +1,10 @@
 package jobs
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rs/zerolog/log"
 )
 
-func Init(bot *tgbotapi.BotAPI) error {
+func Init() error {
 	log.Info().Msg("Инициализация фоновых задач...")
 
 	// Запуск HealthChecker
@@ -18,6 +17,6 @@ func Init(bot *tgbotapi.BotAPI) error {
 	}
 
 	go StartWeatherWorker()
-	go StartUserWorker(bot)
+	go StartUserWorker()
 	return nil
 }

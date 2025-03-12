@@ -43,12 +43,11 @@ func handleDefaultState(ctx *Context) {
 	switch ctx.text {
 	case "/start":
 		ctx.user.State = string(StateAwaitingCityInput)
-		// Другое сообщение приветственное
-		reply.Send().Message(ctx.user.ChatID, "Введите название вашего города:", tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, startMessage(), tgbotapi.NewRemoveKeyboard(true))
 	case "Узнать погоду", "/weather":
 		forecast, err := weather.Get(ctx.user.CityID)
 		if err != nil {
-			log.Error().Err(err).Msg("Ошибка при получении погоды")
+			log.Error().Err(err).Int64("user", ctx.user.TgID).Str("cityID", ctx.user.City).Msg("Ошибка при получении погоды")
 			reply.Send().Message(ctx.user.ChatID, "Произошла ошибка при получении погоды. Попробуйте повторить позже.", mainMenu())
 			return
 		}
@@ -63,7 +62,7 @@ func handleDefaultState(ctx *Context) {
 	case "/weather5":
 		forecast, err := weather.Get(ctx.user.CityID)
 		if err != nil {
-			log.Error().Err(err).Msg("Ошибка при получении погоды")
+			log.Error().Err(err).Int64("user", ctx.user.TgID).Str("cityID", ctx.user.City).Msg("Ошибка при получении погоды")
 			reply.Send().Message(ctx.user.ChatID, "Произошла ошибка при получении погоды. Попробуйте повторить позже.", mainMenu())
 			return
 		}
@@ -71,43 +70,43 @@ func handleDefaultState(ctx *Context) {
 		reply.Send().Message(ctx.user.ChatID, msg, mainMenu())
 	case "/city":
 		ctx.user.State = string(StateAwaitingCityInput)
-		reply.Send().Message(ctx.user.ChatID, "Введите название вашего города:", tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, enterNameCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 	case "/notifications":
 		existingTime, err := services.Global().GetUserNotificationTime(ctx.user.TgID)
 		if err != nil {
-			log.Error().Err(err).Msg("Ошибка при получении уведомления")
-			reply.Send().Message(ctx.user.ChatID, "Уведомления сейчас не работают. Попробуйте повторить позже.", mainMenu())
+			log.Error().Err(err).Int64("user", ctx.user.TgID).Msg("Ошибка при получении уведомления")
+			reply.Send().Message(ctx.user.ChatID, "😢 Уведомления сейчас не работают. Попробуйте повторить позже.", mainMenu())
 			return
 		}
 
 		ctx.user.State = string(StateAwaitingTimeInput)
 		if existingTime != "" {
-			// Уведомление уже есть → предлагаем изменить или удалить
+			// Уведомление уже есть, предлагаем изменить или удалить
 			existingTime, err := strconv.ParseInt(existingTime, 10, 64)
 			if err != nil {
-				log.Error().Err(err).Msg("Ошибка парсинга existingTime")
+				log.Error().Err(err).Int64("existing time", existingTime).Msg("Ошибка парсинга existingTime")
 			}
-			msg := fmt.Sprintf("Вы уже получаете уведомления в %s.\nХотите изменить или удалить?", time.Unix(existingTime, 0).Format("15:04"))
+			msg := fmt.Sprintf("❔ Вы уже получаете уведомления в %s.\nХотите изменить или удалить?", time.Unix(existingTime, 0).Format("15:04"))
 			reply.Send().Message(ctx.user.ChatID, msg, notificationMenu())
 		} else {
-			// Уведомления нет → запрашиваем новое время
-			reply.Send().Message(ctx.user.ChatID, "Введите время в формате: часы:минуты (например: 09:15)", tgbotapi.NewRemoveKeyboard(true))
+			// Уведомления нет, запрашиваем новое время
+			reply.Send().Message(ctx.user.ChatID, enterNotificationTimeMessage(), tgbotapi.NewRemoveKeyboard(true))
 		}
 	case "/stickers":
 		if ctx.user.Sticker {
 			ctx.user.Sticker = false
-			reply.Send().Message(ctx.user.ChatID, "Стикеры выключены", mainMenu())
+			reply.Send().Message(ctx.user.ChatID, "Стикеры выключены ❌", mainMenu())
 		} else {
 			ctx.user.Sticker = true
-			reply.Send().Message(ctx.user.ChatID, "Стикеры включены", mainMenu())
+			reply.Send().Message(ctx.user.ChatID, "Стикеры включены ✅", mainMenu())
 		}
 
 	default:
-		reply.Send().Message(ctx.user.ChatID, "Я не понимаю такую команду, выберите из меню.", mainMenu())
+		reply.Send().Message(ctx.user.ChatID, "🤷‍♀️ Я не понимаю такую команду, выберите из меню.", mainMenu())
 	}
 }
 
 func handleUnknownState(ctx *Context) {
 	ctx.user.State = string(StateNone)
-	reply.Send().Message(ctx.user.ChatID, "Произошла ошибка. Начнем сначала.", startMenu())
+	reply.Send().Message(ctx.user.ChatID, "🔄 Произошла ошибка. Начнем сначала.", startMenu())
 }

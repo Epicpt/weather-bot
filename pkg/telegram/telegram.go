@@ -19,7 +19,7 @@ func (t *Telegram) Message(chatID int64, text string, keyboard any) {
 	msg.ReplyMarkup = keyboard
 	_, err := t.Bot.Send(msg)
 	if err != nil {
-		log.Error().Err(err).Msg("Ошибка отправки сообщения")
+		log.Error().Err(err).Int64("chatID", chatID).Str("msg", text).Msg("Ошибка отправки сообщения")
 	}
 }
 
@@ -27,6 +27,6 @@ func (t *Telegram) Sticker(chatID int64, stickerID string) {
 	msg := tgbotapi.NewSticker(chatID, tgbotapi.FileID(stickerID))
 	_, err := t.Bot.Send(msg)
 	if err != nil {
-		log.Error().Err(err).Msg("Ошибка отправки стикера")
+		log.Error().Err(err).Int64("chatID", chatID).Str("sticker", stickerID).Msg("Ошибка отправки стикера")
 	}
 }

@@ -48,7 +48,7 @@ func findTop3ClosestCities(input string) ([]models.City, error) {
 	for i := 0; i < 3 && i < len(distances); i++ {
 		citiesClose, err := services.Global().GetCities(distances[i].city)
 		if err != nil {
-			log.Error().Err(err).Msgf("Ошибка при получении города %s", distances[i].city)
+			log.Debug().Err(err).Msgf("Ошибка при получении города %s", distances[i].city)
 			continue
 		}
 

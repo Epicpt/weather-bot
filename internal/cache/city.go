@@ -19,7 +19,7 @@ func (c *Cache) SaveCity(city models.City) error {
 	// Преобразуем структуру в JSON
 	cityData, err := json.Marshal(city)
 	if err != nil {
-		log.Error().Err(err).Msg("Ошибка при сериализации города")
+		log.Error().Err(err).Int("cityID", city.ID).Msg("Ошибка при сериализации города")
 		return fmt.Errorf("ошибка при сериализации города: %w", err)
 	}
 
@@ -39,7 +39,7 @@ func (c *Cache) SaveCity(city models.City) error {
 			// Город с таким ID уже существует, обновляем его
 			err = c.client.LSet(context.Background(), redisKey, int64(i), string(cityData)).Err()
 			if err != nil {
-				log.Error().Err(err).Msg("Ошибка при обновлении города в Redis")
+				log.Error().Err(err).Int("cityID", city.ID).Msg("Ошибка при обновлении города в Redis")
 				return fmt.Errorf("ошибка при обновлении города в Redis: %w", err)
 			}
 			return nil
@@ -49,7 +49,7 @@ func (c *Cache) SaveCity(city models.City) error {
 	// Если город не найден, добавляем новый
 	err = c.client.RPush(context.Background(), redisKey, cityData).Err()
 	if err != nil {
-		log.Error().Err(err).Msg("Ошибка записи в Redis")
+		log.Error().Err(err).Int("cityID", city.ID).Msg("Ошибка записи в Redis")
 		return fmt.Errorf("ошибка записи в Redis: %w", err)
 	}
 
@@ -70,7 +70,7 @@ func (c *Cache) GetCities(city string) ([]models.City, error) {
 		var city models.City
 		err := json.Unmarshal([]byte(data), &city)
 		if err != nil {
-			log.Error().Err(err).Msg("Ошибка десериализации города")
+			log.Error().Err(err).Str("data", data).Msg("Ошибка десериализации города")
 			continue
 		}
 		if seen[city.Region] {

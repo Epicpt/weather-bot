@@ -37,6 +37,7 @@ func Get(cityID string) (*models.ProcessedForecast, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Не удалось получить погоду из OpenWeather: %v", err)
 	}
+	log.Info().Str("cityID", cityID).Msg("Новая погода для города получена")
 
 	return processedForecast, nil
 
@@ -76,7 +77,7 @@ func GetNewWeather(cityID int) (*models.ProcessedForecast, error) {
 
 	// Сохраняем (на 25 часов)
 	if err = services.Global().SaveWeather(cityID, processedForecast); err != nil {
-		log.Error().Err(err).Msg("Error saving weather")
+		log.Error().Err(err).Int("cityID", cityID).Msg("Error saving weather")
 	}
 
 	return processedForecast, nil

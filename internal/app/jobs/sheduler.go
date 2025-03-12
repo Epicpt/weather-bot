@@ -34,7 +34,7 @@ func ScheduleUserUpdate(userID int64, notificationTime time.Time) error {
 	// Удаляем задачу
 	err := notificationService.RemoveUserNotification(userID)
 	if err != nil {
-		log.Error().Err(err).Msg("Ошибка удаления задачи обновления погоды из Redis")
+		log.Error().Err(err).Int64("userID", userID).Msg("Ошибка удаления задачи обновления погоды из Redis")
 	}
 
 	// Вычисляем время следующего уведомления

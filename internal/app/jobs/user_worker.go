@@ -7,22 +7,21 @@ import (
 	"weather-bot/internal/app/services"
 	"weather-bot/internal/app/weather"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rs/zerolog/log"
 )
 
-func StartUserWorker(bot *tgbotapi.BotAPI) {
+func StartUserWorker() {
 	time.Sleep(2 * time.Minute)
 	log.Info().Msg("Воркер ProcessUserUpdate запущен...")
 
 	for {
-		ProcessUserUpdate(bot)
+		ProcessUserUpdate()
 		log.Warn().Msg("ProcessUserUpdate завершился, перезапуск через минуту...")
 		time.Sleep(1 * time.Minute)
 	}
 }
 
-func ProcessUserUpdate(bot *tgbotapi.BotAPI) {
+func ProcessUserUpdate() {
 	notificationService := services.Global()
 	for {
 		if !notificationService.IsHealthy() {
@@ -45,13 +44,13 @@ func ProcessUserUpdate(bot *tgbotapi.BotAPI) {
 			for _, message := range stream.Messages {
 				userID, err := strconv.ParseInt(message.Values["user_id"].(string), 10, 64)
 				if err != nil {
-					log.Error().Err(err).Msg("Ошибка парсинга userID")
+					log.Error().Err(err).Int64("userID", userID).Msg("Ошибка парсинга")
 					continue
 				}
 				notifTime, _ := message.Values["executeAt"].(string)
 				executeAt, err := strconv.ParseInt(notifTime, 10, 64)
 				if err != nil {
-					log.Error().Err(err).Msg("Ошибка парсинга executeAt")
+					log.Error().Err(err).Str("time", notifTime).Msg("Ошибка парсинга executeAt")
 					continue
 				}
 				// Если пора отправлять уведомление
@@ -60,12 +59,12 @@ func ProcessUserUpdate(bot *tgbotapi.BotAPI) {
 
 					user, err := services.Global().GetUser(userID)
 					if err != nil {
-						log.Error().Err(err).Msg("Ошибка при получении данных пользователя из Redis")
+						log.Error().Err(err).Int64("userID", user.TgID).Msg("Ошибка при получении данных пользователя из Redis")
 						continue
 					}
 					forecast, err := weather.Get(user.CityID)
 					if err != nil {
-						log.Error().Err(err).Msg("Ошибка при получении погоды")
+						log.Error().Err(err).Str("cityID", user.CityID).Msg("Ошибка при получении погоды")
 						continue
 					}
 					today := time.Now().UTC().Format("2006-01-02")

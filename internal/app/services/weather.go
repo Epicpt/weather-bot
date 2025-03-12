@@ -13,14 +13,26 @@ type WeatherService struct {
 }
 
 func (s *WeatherService) SaveWeather(id int, forecast *models.ProcessedForecast) error {
-	errP := s.Primary.SaveWeather(id, forecast)
+	var errP, errS error
+
+	// Пытаемся сохранить в Primary хранилище
+	errP = s.Primary.SaveWeather(id, forecast)
 	if errP != nil {
-		log.Warn().Err(errP).Msg("Ошибка записи города в Primary хранилище")
+		log.Warn().Err(errP).Int("cityID", id).Msg("Ошибка записи города в Primary хранилище")
 	}
-	if errS := s.Secondary.SaveWeather(id, forecast); errS != nil {
-		log.Warn().Err(errS).Msg("Ошибка записи города в Secondary хранилище")
+
+	// Пытаемся сохранить во Secondary хранилище
+	errS = s.Secondary.SaveWeather(id, forecast)
+	if errS != nil {
+		log.Warn().Err(errS).Int("cityID", id).Msg("Ошибка записи города в Secondary хранилище")
+	}
+
+	// Если произошли ошибки на обоих хранилищах, комбинируем ошибки и возвращаем
+	if errP != nil && errS != nil {
 		return &DualStorageError{Primary: errP, Secondary: errS}
 	}
+
+	// Если ошибок не было, возвращаем nil
 	return nil
 }
 

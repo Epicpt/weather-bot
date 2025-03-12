@@ -15,10 +15,10 @@ type UserService struct {
 func (s *UserService) SaveUser(user *models.User) error {
 	errP := s.Primary.SaveUser(user)
 	if errP != nil {
-		log.Warn().Err(errP).Msg("Ошибка записи юзера в Primary хранилище")
+		log.Warn().Err(errP).Int64("userID", user.TgID).Msg("Ошибка записи юзера в Primary хранилище")
 	}
 	if errS := s.Secondary.SaveUser(user); errS != nil {
-		log.Warn().Err(errS).Msg("Ошибка записи юзера в Secondary хранилище")
+		log.Warn().Err(errS).Int64("userID", user.TgID).Msg("Ошибка записи юзера в Secondary хранилище")
 		return &DualStorageError{Primary: errP, Secondary: errS}
 	}
 	return nil
@@ -29,13 +29,13 @@ func (s *UserService) GetUser(id int64) (*models.User, error) {
 	if errP == nil {
 		return user, nil
 	}
-	log.Warn().Err(errP).Msg("Ошибка чтения юзера из Primary хранилища")
+	log.Warn().Err(errP).Int64("userID", user.TgID).Msg("Ошибка чтения юзера из Primary хранилища")
 
 	user, errS := s.Secondary.GetUser(id)
 	if errS == nil {
 		return user, nil
 	}
-	log.Warn().Err(errS).Msg("Ошибка чтения юзера из Secondary хранилища")
+	log.Warn().Err(errS).Int64("userID", user.TgID).Msg("Ошибка чтения юзера из Secondary хранилища")
 
 	return nil, &DualStorageError{Primary: errP, Secondary: errS}
 }

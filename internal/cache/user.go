@@ -29,7 +29,7 @@ func (c *Cache) SaveUser(u *models.User) error {
 	// Сохраняем в Redis
 	err := c.client.HSet(context.Background(), redisKey, userData).Err()
 	if err != nil {
-		log.Error().Err(err).Msgf("Ошибка записи в Redis: %v", err)
+		log.Error().Err(err).Int64("userID", u.TgID).Msgf("Ошибка записи в Redis: %v", err)
 		return fmt.Errorf("ошибка записи в Redis: %w", err)
 	}
 
