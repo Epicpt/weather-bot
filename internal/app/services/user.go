@@ -13,14 +13,21 @@ type UserService struct {
 }
 
 func (s *UserService) SaveUser(user *models.User) error {
-	errP := s.Primary.SaveUser(user)
+	var errP, errS error
+	errP = s.Primary.SaveUser(user)
 	if errP != nil {
 		log.Warn().Err(errP).Int64("userID", user.TgID).Msg("Ошибка записи юзера в Primary хранилище")
 	}
-	if errS := s.Secondary.SaveUser(user); errS != nil {
+
+	if errS = s.Secondary.SaveUser(user); errS != nil {
 		log.Warn().Err(errS).Int64("userID", user.TgID).Msg("Ошибка записи юзера в Secondary хранилище")
+
+	}
+
+	if errP != nil && errS != nil {
 		return &DualStorageError{Primary: errP, Secondary: errS}
 	}
+
 	return nil
 }
 

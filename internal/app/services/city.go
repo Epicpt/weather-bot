@@ -13,12 +13,17 @@ type CityService struct {
 }
 
 func (s *CityService) SaveCity(city models.City) error {
-	errP := s.Primary.SaveCity(city)
+	var errP, errS error
+	errP = s.Primary.SaveCity(city)
 	if errP != nil {
 		log.Warn().Err(errP).Msg("Ошибка записи города в Primary хранилище")
 	}
-	if errS := s.Secondary.SaveCity(city); errS != nil {
+
+	if errS = s.Secondary.SaveCity(city); errS != nil {
 		log.Warn().Err(errS).Msg("Ошибка записи города в Secondary хранилище")
+	}
+
+	if errP != nil && errS != nil {
 		return &DualStorageError{Primary: errP, Secondary: errS}
 	}
 	return nil

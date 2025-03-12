@@ -48,13 +48,14 @@ func TestSaveWeather_PrimaryFailsSecondaryFails(t *testing.T) {
 	assert.Error(t, err)
 
 	// Приводим ошибку к типу DualStorageError и проверяем её поля
-	var dualErr = &services.DualStorageError{
-		Primary:   fmt.Errorf("primary error"),
-		Secondary: fmt.Errorf("secondary error"),
-	}
-	if assert.IsType(t, dualErr, err) {
-		assert.Equal(t, "Primary: primary error, Secondary: secondary error", dualErr.Error()) // проверяем ошибку в первичном хранилище
-		assert.Equal(t, "Primary: primary error, Secondary: secondary error", dualErr.Error()) // проверяем ошибку во вторичном хранилище
+	var dualErr *services.DualStorageError
+	if assert.ErrorAs(t, err, &dualErr) {
+		if dualErr.Primary != nil {
+			assert.Equal(t, "primary error", dualErr.Primary.Error())
+		}
+		if dualErr.Secondary != nil {
+			assert.Equal(t, "secondary error", dualErr.Secondary.Error())
+		}
 	}
 
 	// Проверяем, что методы действительно были вызваны
@@ -110,4 +111,88 @@ func TestSaveWeather_PrimarySucceedsSecondaryFails(t *testing.T) {
 	// Проверяем, что методы действительно были вызваны
 	mockPrimary.AssertCalled(t, "SaveWeather", 1, weather)
 	mockSecondary.AssertCalled(t, "SaveWeather", 1, weather)
+}
+
+func TestGetWeather_PrimaryFailsSecondaryFails(t *testing.T) {
+	mockPrimary := new(MockWeatherStorage)
+	mockSecondary := new(MockWeatherStorage)
+	service := &services.WeatherService{
+		Primary:   mockPrimary,
+		Secondary: mockSecondary,
+	}
+
+	// Мокируем ошибку для первичного хранилища
+	mockPrimary.On("GetWeather", 1).Return(nil, fmt.Errorf("primary error"))
+	// Мокируем ошибку для вторичного хранилища
+	mockSecondary.On("GetWeather", 1).Return(nil, fmt.Errorf("secondary error"))
+
+	// Вызываем метод
+	_, err := service.GetWeather(1)
+
+	// Проверяем, что ошибка не nil
+	assert.Error(t, err)
+
+	// Приводим ошибку к типу DualStorageError и проверяем её поля
+	var dualErr *services.DualStorageError
+	if assert.ErrorAs(t, err, &dualErr) {
+		if dualErr.Primary != nil {
+			assert.Equal(t, "primary error", dualErr.Primary.Error())
+		}
+		if dualErr.Secondary != nil {
+			assert.Equal(t, "secondary error", dualErr.Secondary.Error())
+		}
+	}
+
+	// Проверяем, что методы действительно были вызваны
+	mockPrimary.AssertCalled(t, "GetWeather", 1)
+	mockSecondary.AssertCalled(t, "GetWeather", 1)
+}
+
+func TestGetWeather_PrimaryFailsSecondarySucceeds(t *testing.T) {
+	mockPrimary := new(MockWeatherStorage)
+	mockSecondary := new(MockWeatherStorage)
+	service := &services.WeatherService{
+		Primary:   mockPrimary,
+		Secondary: mockSecondary,
+	}
+
+	weather := &models.ProcessedForecast{}
+
+	// Мокируем ошибку для первичного хранилища
+	mockPrimary.On("GetWeather", 1).Return(nil, fmt.Errorf("primary error"))
+
+	mockSecondary.On("GetWeather", 1).Return(weather, nil)
+
+	// Вызываем метод
+	expectedWeather, err := service.GetWeather(1)
+
+	assert.Equal(t, expectedWeather, weather)
+	assert.NoError(t, err)
+
+	// Проверяем, что методы действительно были вызваны
+	mockPrimary.AssertCalled(t, "GetWeather", 1)
+	mockSecondary.AssertCalled(t, "GetWeather", 1)
+}
+
+func TestGetWeather_PrimarySucceedsSecondaryFails(t *testing.T) {
+	mockPrimary := new(MockWeatherStorage)
+	mockSecondary := new(MockWeatherStorage)
+	service := &services.WeatherService{
+		Primary:   mockPrimary,
+		Secondary: mockSecondary,
+	}
+
+	weather := &models.ProcessedForecast{}
+
+	mockPrimary.On("GetWeather", 1).Return(weather, nil)
+
+	mockSecondary.On("GetWeather", 1).Return(nil, fmt.Errorf("secondary error"))
+
+	// Вызываем метод
+	expectedWeather, err := service.GetWeather(1)
+
+	assert.Equal(t, expectedWeather, weather)
+	assert.NoError(t, err)
+
+	mockPrimary.AssertCalled(t, "GetWeather", 1)
 }
