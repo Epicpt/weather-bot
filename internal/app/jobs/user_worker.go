@@ -59,7 +59,7 @@ func ProcessUserUpdate() {
 
 					user, err := services.Global().GetUser(userID)
 					if err != nil {
-						log.Error().Err(err).Int64("userID", user.TgID).Msg("Ошибка при получении данных пользователя из Redis")
+						log.Error().Err(err).Int64("userID", user.TgID).Msg("Ошибка при получении данных пользователя")
 						continue
 					}
 					forecast, err := weather.Get(user.CityID)

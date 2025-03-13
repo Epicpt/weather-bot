@@ -15,7 +15,7 @@ func handleCityInput(ctx *Context) {
 	cities, err := search.SearchCity(ctx.text)
 	if err != nil {
 		log.Error().Err(err).Int64("user", ctx.user.TgID).Str("city", ctx.text).Msg("Ошибка при поиске города")
-		reply.Send().Message(ctx.user.ChatID, errorFindMessage(), tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 		return
 	}
 
@@ -35,7 +35,7 @@ func handleCityInput(ctx *Context) {
 		return
 	}
 
-	reply.Send().Message(ctx.user.ChatID, errorFindMessage(), tgbotapi.NewRemoveKeyboard(true))
+	reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 }
 
 func handleCitySelection(ctx *Context) {
@@ -50,7 +50,7 @@ func handleCitySelection(ctx *Context) {
 	if len(parts) < 2 || len(parts) > 3 {
 		log.Error().Str("city", ctx.text).Msg("Неверный формат выбранного города")
 		ctx.user.State = string(StateAwaitingCityInput)
-		reply.Send().Message(ctx.user.ChatID, errorFindMessage(), tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 		return
 	}
 
@@ -59,7 +59,7 @@ func handleCitySelection(ctx *Context) {
 	if err != nil {
 		log.Error().Int("cityID", cityID).Err(err).Msg("Ошибка при парсинге ID города")
 		ctx.user.State = string(StateAwaitingCityInput)
-		reply.Send().Message(ctx.user.ChatID, errorFindMessage(), tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 
 		return
 	}
@@ -68,7 +68,7 @@ func handleCitySelection(ctx *Context) {
 	if err != nil || len(cities) == 0 {
 		log.Error().Int("cityID", cityID).Str("city", cityName).Err(err).Msg("Ошибка при поиске выбранного города")
 		ctx.user.State = string(StateAwaitingCityInput)
-		reply.Send().Message(ctx.user.ChatID, errorFindMessage(), tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 		return
 	}
 
@@ -83,7 +83,7 @@ func handleCitySelection(ctx *Context) {
 	if selectedCity == nil {
 		log.Error().Int("cityID", cityID).Str("city", cityName).Msg("Выбранный город не найден")
 		ctx.user.State = string(StateAwaitingCityInput)
-		reply.Send().Message(ctx.user.ChatID, errorFindMessage(), tgbotapi.NewRemoveKeyboard(true))
+		reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
 
 		return
 	}

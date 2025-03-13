@@ -48,7 +48,7 @@ func handleDefaultState(ctx *Context) {
 		forecast, err := weather.Get(ctx.user.CityID)
 		if err != nil {
 			log.Error().Err(err).Int64("user", ctx.user.TgID).Str("cityID", ctx.user.City).Msg("Ошибка при получении погоды")
-			reply.Send().Message(ctx.user.ChatID, "Произошла ошибка при получении погоды. Попробуйте повторить позже.", mainMenu())
+			reply.Send().Message(ctx.user.ChatID, errorGetWeatherMessage(), mainMenu())
 			return
 		}
 		today := time.Now().UTC().Format("2006-01-02")
@@ -63,7 +63,7 @@ func handleDefaultState(ctx *Context) {
 		forecast, err := weather.Get(ctx.user.CityID)
 		if err != nil {
 			log.Error().Err(err).Int64("user", ctx.user.TgID).Str("cityID", ctx.user.City).Msg("Ошибка при получении погоды")
-			reply.Send().Message(ctx.user.ChatID, "Произошла ошибка при получении погоды. Попробуйте повторить позже.", mainMenu())
+			reply.Send().Message(ctx.user.ChatID, errorGetWeatherMessage(), mainMenu())
 			return
 		}
 		msg := weather.FormatFiveDayForecast(ctx.user.City, forecast.ShortDays)

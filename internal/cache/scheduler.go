@@ -20,7 +20,7 @@ func (c *Cache) ScheduleWeatherUpdate(executeAt int64) error {
 	// Добавляем задачу в Redis Stream
 	_, err := c.client.XAdd(ctx, &redis.XAddArgs{
 		Stream: "weather_updates",
-		Values: map[string]interface{}{
+		Values: map[string]any{
 			"job_id":    jobID,
 			"executeAt": executeAt,
 		},
