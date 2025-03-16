@@ -8,7 +8,6 @@ require (
 	github.com/briandowns/openweathermap v0.21.1
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/jackc/pgx/v5 v5.7.2
-	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0
