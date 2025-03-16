@@ -40,3 +40,8 @@ func (d *Database) SaveWeather(cityID int, forecast *models.ProcessedForecast) e
 	}
 	return nil
 }
+
+func (d *Database) CleanupOldWeatherData() error {
+	_, err := d.pool.Exec(context.Background(), "DELETE FROM weather WHERE updated_at < NOW() - INTERVAL '2 days'")
+	return err
+}

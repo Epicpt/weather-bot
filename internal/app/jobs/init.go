@@ -18,5 +18,6 @@ func Init() error {
 
 	go StartWeatherWorker()
 	go StartUserWorker()
+	go StartCleanupTask()
 	return nil
 }

@@ -1,0 +1,37 @@
+
+services:
+  bot:
+    image: epicpt/weather-bot-bot:latest
+    container_name: bot_container
+    depends_on:
+      - redis
+      - postgres
+    env_file: 
+      - .env 
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    env_file: 
+       - .env 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+volumes:
+  postgres_data:
+  redis_data:

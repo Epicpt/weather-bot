@@ -7,21 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var globalStorage storage.Cashe
-
-func Init(primary storage.Cashe, secondary storage.DB) {
-	globalStorage = &ServiceContainer{
-		CityService:         InitCityService(primary, secondary),
-		UserService:         InitUserService(primary, secondary),
-		WeatherService:      InitWeatherService(primary, secondary),
-		NotificationService: InitNotificationService(primary),
-		Cache:               primary,
-	}
-}
-
-func Global() storage.Cashe {
-	return globalStorage
-}
+var globalStorage *ServiceContainer
 
 type ServiceContainer struct {
 	CityService         CityService
@@ -29,6 +15,22 @@ type ServiceContainer struct {
 	WeatherService      WeatherService
 	NotificationService NotificationService
 	Cache               storage.Cashe
+	DB                  storage.Database
+}
+
+func Init(primary storage.Cashe, secondary storage.Database) {
+	globalStorage = &ServiceContainer{
+		CityService:         InitCityService(primary, secondary),
+		UserService:         InitUserService(primary, secondary),
+		WeatherService:      InitWeatherService(primary, secondary),
+		NotificationService: InitNotificationService(primary),
+		Cache:               primary,
+		DB:                  secondary,
+	}
+}
+
+func Global() *ServiceContainer {
+	return globalStorage
 }
 
 func (s *ServiceContainer) HealthCheck() {
@@ -37,6 +39,10 @@ func (s *ServiceContainer) HealthCheck() {
 
 func (s *ServiceContainer) IsHealthy() bool {
 	return s.Cache.IsHealthy()
+}
+
+func (s *ServiceContainer) CleanupOldWeatherData() error {
+	return s.DB.CleanupOldWeatherData()
 }
 
 func (s *ServiceContainer) SaveCity(city models.City) error {

@@ -7,14 +7,17 @@ import (
 )
 
 type Cashe interface {
-	DB
-	NotificationStorage
-	HealthChecker
-}
-type DB interface {
 	CityStorage
 	UserStorage
 	WeatherStorage
+	NotificationStorage
+	HealthChecker
+}
+type Database interface {
+	CityStorage
+	UserStorage
+	WeatherStorage
+	CleanupData
 }
 
 type CityStorage interface {
@@ -47,4 +50,8 @@ type NotificationStorage interface {
 type HealthChecker interface {
 	HealthCheck()
 	IsHealthy() bool
+}
+
+type CleanupData interface {
+	CleanupOldWeatherData() error
 }

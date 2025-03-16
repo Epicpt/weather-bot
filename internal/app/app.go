@@ -1,6 +1,8 @@
 package app
 
 import (
+	"os"
+	"path/filepath"
 	"weather-bot/internal/app/handlers"
 	"weather-bot/internal/app/jobs"
 	"weather-bot/internal/app/loader"
@@ -44,7 +46,7 @@ func New(cfg *config.Config) *App {
 	log.Info().Msg("Connected to PostgreSQL")
 
 	// Инициализация Redis
-	client, err := cache.Init(cfg.RedisAddr)
+	client, err := cache.Init(cfg.RedisURL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Ошибка подключения к Redis")
 	}
@@ -76,7 +78,12 @@ func (a *App) Bootstrap() {
 	reply.Init(telegram.New(a.Bot))
 
 	// Загрузка городов
-	if err := loader.LoadCities("../internal/app/loader/enriched_cities.json", services.InitCityService(a.Cache, a.DB)); err != nil {
+	basePath, err := os.Getwd()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Ошибка получения текущего каталога")
+	}
+	filePath := filepath.Join(basePath, "internal", "app", "loader", "enriched_cities.json")
+	if err := loader.LoadCities(filePath, services.InitCityService(a.Cache, a.DB)); err != nil {
 		log.Fatal().Err(err).Msg("Error loading cities to storage")
 	}
 

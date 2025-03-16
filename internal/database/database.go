@@ -59,10 +59,6 @@ func ensureTables(pool *pgxpool.Pool) error {
     		street TEXT
 		);`,
 	}
-	// Добавить перед созданием докер образа
-	// CREATE EXTENSION IF NOT EXISTS pg_cron;
-	// 	SELECT cron.schedule('pg_weather_cleanup', '1 */25 * * *',
-	//     'DELETE FROM weather WHERE updated_at < NOW() - INTERVAL ''25 hours''');
 
 	for _, query := range queries {
 		if _, err := pool.Exec(context.Background(), query); err != nil {
