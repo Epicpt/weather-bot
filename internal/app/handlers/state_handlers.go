@@ -51,14 +51,7 @@ func handleDefaultState(ctx *Context) {
 			reply.Send().Message(ctx.user.ChatID, errorGetWeatherMessage(), mainMenu())
 			return
 		}
-		today := time.Now().UTC().Format("2006-01-02")
-		msg := weather.FormatDailyForecast(ctx.user.City, forecast.FullDay[today])
-		reply.Send().Message(ctx.user.ChatID, msg, mainMenu())
-
-		if ctx.user.Sticker {
-			sticker := weather.Sticker(forecast.FullDay[today])
-			reply.Send().Sticker(ctx.user.ChatID, sticker)
-		}
+		reply.SendDailyWeather(ctx.user, forecast)
 	case "/weather5":
 		forecast, err := weather.Get(ctx.user.CityID)
 		if err != nil {

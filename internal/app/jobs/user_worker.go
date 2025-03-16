@@ -67,9 +67,8 @@ func ProcessUserUpdate() {
 						log.Error().Err(err).Str("cityID", user.CityID).Msg("Ошибка при получении погоды")
 						continue
 					}
-					today := time.Now().UTC().Format("2006-01-02")
-					msg := weather.FormatDailyForecast(user.City, forecast.FullDay[today])
-					reply.Send().Message(user.ChatID, msg, nil)
+
+					reply.SendDailyWeather(user, forecast)
 
 					notifTime := time.Unix(executeAt, 0)
 					// Планируем задачу на следующий день
