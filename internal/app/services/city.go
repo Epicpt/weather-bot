@@ -1,6 +1,7 @@
 package services
 
 import (
+	"weather-bot/internal/app/monitoring"
 	"weather-bot/internal/app/storage"
 	"weather-bot/internal/models"
 
@@ -16,10 +17,12 @@ func (s *CityService) SaveCity(city models.City) error {
 	var errP, errS error
 	errP = s.Primary.SaveCity(city)
 	if errP != nil {
+		monitoring.RedisErrorsTotal.Inc()
 		log.Warn().Err(errP).Msg("Ошибка записи города в Primary хранилище")
 	}
 
 	if errS = s.Secondary.SaveCity(city); errS != nil {
+		monitoring.DBErrorsTotal.Inc()
 		log.Warn().Err(errS).Msg("Ошибка записи города в Secondary хранилище")
 	}
 
@@ -32,14 +35,18 @@ func (s *CityService) SaveCity(city models.City) error {
 func (s *CityService) GetCities(name string) ([]models.City, error) {
 	cities, errP := s.Primary.GetCities(name)
 	if errP == nil {
+		monitoring.RedisCacheHits.Inc()
 		return cities, nil
 	}
+	monitoring.RedisCacheMisses.Inc()
+	monitoring.RedisErrorsTotal.Inc()
 	log.Error().Err(errP).Msg("Ошибка получения городов из Primary хранилища")
 
 	cities, errS := s.Secondary.GetCities(name)
 	if errS == nil {
 		return cities, nil
 	}
+	monitoring.DBErrorsTotal.Inc()
 	log.Error().Err(errS).Msg("Ошибка получения городов из Secondary хранилища")
 	return nil, &DualStorageError{Primary: errP, Secondary: errS}
 }
@@ -66,14 +73,18 @@ func (s *CityService) GetCitiesIds() ([]string, error) {
 func (s *CityService) getFromStorage(get func(storage.CityStorage) ([]string, error), operation string) ([]string, error) {
 	cities, errP := get(s.Primary)
 	if errP == nil {
+		monitoring.RedisCacheHits.Inc()
 		return cities, nil
 	}
+	monitoring.RedisCacheMisses.Inc()
+	monitoring.RedisErrorsTotal.Inc()
 	log.Error().Err(errP).Msgf("Ошибка получения %s городов из Primary хранилища", operation)
 
 	cities, errS := get(s.Secondary)
 	if errS == nil {
 		return cities, nil
 	}
+	monitoring.DBErrorsTotal.Inc()
 	log.Error().Err(errS).Msgf("Ошибка получения %s городов из Secondary хранилища", operation)
 	return nil, &DualStorageError{Primary: errP, Secondary: errS}
 }

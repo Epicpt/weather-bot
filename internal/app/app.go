@@ -6,6 +6,7 @@ import (
 	"weather-bot/internal/app/handlers"
 	"weather-bot/internal/app/jobs"
 	"weather-bot/internal/app/loader"
+	"weather-bot/internal/app/monitoring"
 	"weather-bot/internal/app/reply"
 	"weather-bot/internal/app/services"
 	"weather-bot/internal/cache"
@@ -52,6 +53,9 @@ func New(cfg *config.Config) *App {
 	}
 
 	log.Info().Msg("Connected to Redis")
+
+	// Инициализация сервера метрик
+	go monitoring.StartMetricsServer(os.Getenv("METRICS_SERVER_ADDR"))
 
 	db := database.NewDatabase(pool)
 	redis := cache.NewCache(client)

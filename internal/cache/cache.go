@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"weather-bot/internal/app/monitoring"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
@@ -44,6 +45,7 @@ func (cache *Cache) HealthCheck() {
 	defer cache.mu.Unlock()
 
 	if err != nil {
+		monitoring.RedisConnectionErrors.Inc()
 		log.Warn().Msg("Redis недоступен")
 		cache.Healthy = false
 	} else {

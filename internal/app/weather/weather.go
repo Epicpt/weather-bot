@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"time"
+	"weather-bot/internal/app/monitoring"
 	"weather-bot/internal/app/services"
 	"weather-bot/internal/models"
 
@@ -28,6 +29,7 @@ func Get(cityID string) (*models.ProcessedForecast, error) {
 	}
 	// Проверяем кеш
 	if forecast, err := services.Global().GetWeather(cityId); err == nil {
+		monitoring.WeatherCacheHitsTotal.Inc()
 		return forecast, nil
 	}
 	log.Warn().Msg("не удалось получить forecast из хранилищ")
@@ -35,10 +37,12 @@ func Get(cityID string) (*models.ProcessedForecast, error) {
 	// Получаем прогноз из OpenWeather
 	processedForecast, err := GetNewWeather(cityId)
 	if err != nil {
+		monitoring.WeatherAPIErrorsTotal.Inc()
 		return nil, fmt.Errorf("Не удалось получить погоду из OpenWeather: %v", err)
 	}
-	log.Info().Str("cityID", cityID).Msg("Новая погода для города получена")
 
+	log.Info().Str("cityID", cityID).Msg("Новая погода для города получена")
+	monitoring.WeatherCacheMissesTotal.Inc()
 	return processedForecast, nil
 
 }
@@ -56,6 +60,7 @@ func Update(cityIDs []string) error {
 		<-ticker.C
 		_, err = GetNewWeather(cityId)
 		if err != nil {
+			monitoring.WeatherAPIErrorsTotal.Inc()
 			return err
 		}
 	}
@@ -63,6 +68,7 @@ func Update(cityIDs []string) error {
 }
 
 func GetNewWeather(cityID int) (*models.ProcessedForecast, error) {
+	monitoring.WeatherAPIRequestsTotal.Inc()
 	// Запрашиваем прогноз из OpenWeather
 	forecastData, err := fetchWeatherFromAPI(cityID)
 	if err != nil {

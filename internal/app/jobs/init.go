@@ -1,6 +1,8 @@
 package jobs
 
 import (
+	"weather-bot/internal/app/monitoring"
+
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,6 +14,7 @@ func Init() error {
 
 	// Добавляем задачу обновления прогноза в Redis (если её нет)
 	if err := ScheduleWeatherUpdate(); err != nil {
+		monitoring.RedisErrorsTotal.Inc()
 		log.Error().Err(err).Msg("Ошибка при установке задачи обновления погоды")
 		return err
 	}

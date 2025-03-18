@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"weather-bot/internal/app/monitoring"
 	"weather-bot/internal/app/services"
 	"weather-bot/internal/models"
 
@@ -15,6 +16,9 @@ type Context struct {
 }
 
 func Update(update tgbotapi.Update) {
+	monitoring.BotRequestsTotal.Inc()
+	monitoring.UpdateUniqueUsers(update.Message.From.ID)
+
 	// Получаем данные пользователя из хранилища
 	userService := services.Global()
 	user, err := userService.GetUser(update.Message.From.ID)
@@ -26,6 +30,7 @@ func Update(update tgbotapi.Update) {
 	if user == nil {
 		user = models.NewUser(update.Message.From.ID, update.Message.Chat.ID, update.Message.From.FirstName, string(StateNone))
 		log.Info().Int64("id", user.TgID).Msgf("Новый пользователь %s!", user.Name)
+
 	}
 
 	ctx := &Context{
@@ -37,6 +42,7 @@ func Update(update tgbotapi.Update) {
 
 	// Сохраняем обновленные данные пользователя
 	if err = userService.SaveUser(user); err != nil {
+		monitoring.BotErrorsTotal.Inc()
 		log.Error().Err(err).Int64("id", user.TgID).Msg("Ошибка при сохранении пользователя в хранилище")
 	}
 

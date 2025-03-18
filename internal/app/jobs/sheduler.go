@@ -3,6 +3,7 @@ package jobs
 import (
 	"fmt"
 	"time"
+	"weather-bot/internal/app/monitoring"
 	"weather-bot/internal/app/services"
 
 	"github.com/rs/zerolog/log"
@@ -13,6 +14,7 @@ func ScheduleWeatherUpdate() error {
 	// Удаляем задачу
 	err := notificationService.RemoveWeatherUpdate()
 	if err != nil {
+		monitoring.RedisErrorsTotal.Inc()
 		log.Error().Err(err).Msg("Ошибка удаления задачи обновления погоды из Redis")
 	}
 
@@ -22,6 +24,7 @@ func ScheduleWeatherUpdate() error {
 
 	err = notificationService.ScheduleWeatherUpdate(executeAt)
 	if err != nil {
+		monitoring.RedisErrorsTotal.Inc()
 		return fmt.Errorf("не удалось сохранить executeAt в Redis: %w", err)
 	}
 
@@ -34,6 +37,7 @@ func ScheduleUserUpdate(userID int64, notificationTime time.Time) error {
 	// Удаляем задачу
 	err := notificationService.RemoveUserNotification(userID)
 	if err != nil {
+		monitoring.RedisErrorsTotal.Inc()
 		log.Error().Err(err).Int64("userID", userID).Msg("Ошибка удаления задачи обновления погоды из Redis")
 	}
 
@@ -44,6 +48,7 @@ func ScheduleUserUpdate(userID int64, notificationTime time.Time) error {
 	// Сохраняем новую задачу
 	err = notificationService.ScheduleUserNotification(userID, executeAt)
 	if err != nil {
+		monitoring.RedisErrorsTotal.Inc()
 		return fmt.Errorf("не удалось сохранить executeAt в Redis: %w", err)
 	}
 
