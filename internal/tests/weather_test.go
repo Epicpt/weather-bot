@@ -28,6 +28,8 @@ func (m *MockWeatherStorage) GetWeather(id int) (*models.ProcessedForecast, erro
 }
 
 func TestSaveWeather_PrimaryFailsSecondaryFails(t *testing.T) {
+	//monitoring.InitMetrics()
+
 	mockPrimary := new(MockWeatherStorage)
 	mockSecondary := new(MockWeatherStorage)
 	service := &services.WeatherService{
