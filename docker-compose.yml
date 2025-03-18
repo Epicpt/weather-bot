@@ -13,7 +13,7 @@ services:
 
     
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:latest # check CI
     container_name: prometheus
     restart: unless-stopped
     volumes:
