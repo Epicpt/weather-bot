@@ -42,7 +42,7 @@ var (
 
 	WeatherCacheMissesTotal = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "weather_cache_misses_total",
-		Help: "Количество запросов, которых не было в кэше",
+		Help: "Количество запросов погоды, которых не было в кэше",
 	})
 
 	WeatherUpdateTotal = promauto.NewCounter(prometheus.CounterOpts{
