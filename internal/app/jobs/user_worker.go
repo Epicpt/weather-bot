@@ -41,7 +41,7 @@ func ProcessUserUpdate() {
 			continue
 		}
 
-		monitoring.RedisQueueLength.Set(float64(len(streams)))
+		monitoring.RedisQueueLength.Set(float64(len(streams[0].Messages)))
 
 		// Обрабатываем задачу
 		for _, stream := range streams {

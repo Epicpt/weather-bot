@@ -55,7 +55,6 @@ func New(cfg *config.Config) *App {
 	log.Info().Msg("Connected to Redis")
 
 	// Инициализация сервера метрик
-	//monitoring.InitMetrics()
 	go monitoring.StartMetricsServer(os.Getenv("METRICS_SERVER_ADDR"))
 
 	db := database.NewDatabase(pool)
