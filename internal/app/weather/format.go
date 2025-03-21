@@ -10,21 +10,21 @@ func FormatDailyForecast(city string, forecast models.FullDayForecast) string {
 	message := fmt.Sprintf("🌤 <b>Прогноз на сегодня (%s):</b>\n", city)
 
 	if (forecast.Morning != models.WeatherSummary{}) {
-		message += fmt.Sprintf("🥱 <b>Утро:</b> %.f°C, ощущается как %.1f°C, %s %s\n",
+		message += fmt.Sprintf("🥱 <b>Утро:</b> %.f°C, ощущается как %.f°C, %s %s\n",
 			forecast.Morning.Temperature, forecast.Morning.FeelsLike, forecast.Morning.Condition, getWeatherEmoji(forecast.Morning.ConditionId))
 	}
 	if (forecast.Day != models.WeatherSummary{}) {
-		message += fmt.Sprintf("🌞 <b>День:</b> %.f°C, ощущается как %.1f°C, %s %s\n",
+		message += fmt.Sprintf("🌞 <b>День:</b> %.f°C, ощущается как %.f°C, %s %s\n",
 			forecast.Day.Temperature, forecast.Day.FeelsLike, forecast.Day.Condition, getWeatherEmoji(forecast.Day.ConditionId))
 	}
 
 	if (forecast.Evening != models.WeatherSummary{}) {
-		message += fmt.Sprintf("🌚 <b>Вечер:</b> %.f°C, ощущается как %.1f°C, %s %s\n",
+		message += fmt.Sprintf("🌚 <b>Вечер:</b> %.f°C, ощущается как %.f°C, %s %s\n",
 			forecast.Evening.Temperature, forecast.Evening.FeelsLike, forecast.Evening.Condition, getWeatherEmoji(forecast.Evening.ConditionId))
 	}
 
 	if (forecast.Night != models.WeatherSummary{}) {
-		message += fmt.Sprintf("🌙 <b>Ночь:</b> %.f°C, ощущается как %.1f°C, %s %s",
+		message += fmt.Sprintf("🌙 <b>Ночь:</b> %.f°C, ощущается как %.f°C, %s %s",
 			forecast.Night.Temperature, forecast.Night.FeelsLike, forecast.Night.Condition, getWeatherEmoji(forecast.Night.ConditionId))
 	}
 
