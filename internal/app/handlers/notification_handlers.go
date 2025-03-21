@@ -34,7 +34,7 @@ func handleTimeInput(ctx *Context) {
 		return
 	}
 
-	if validateTime(ctx.text) {
+	if isValidTime(ctx.text) {
 		// Парсим `HH:MM` в `time.Time`
 		notifTime, err := time.Parse("15:04", ctx.text)
 		if err != nil {
@@ -56,7 +56,7 @@ func handleTimeInput(ctx *Context) {
 
 }
 
-func validateTime(input string) bool {
+func isValidTime(input string) bool {
 	// Проверяем формат через регулярку "HH:MM"
 	matched, err := regexp.MatchString(`^([01]\d|2[0-3]):([0-5]\d)$`, input)
 	if err != nil {

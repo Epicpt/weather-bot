@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"weather-bot/internal/app/reply"
@@ -12,6 +13,11 @@ import (
 )
 
 func handleCityInput(ctx *Context) {
+	if !IsValidCity(ctx.text) {
+		reply.Send().Message(ctx.user.ChatID, "⛔️ Принимается название города только на кириллице. Попробуйте еще раз:", tgbotapi.NewRemoveKeyboard(true))
+		return
+	}
+
 	cities, err := search.SearchCity(ctx.text)
 	if err != nil {
 		log.Error().Err(err).Int64("user", ctx.user.TgID).Str("city", ctx.text).Msg("Ошибка при поиске города")
@@ -36,6 +42,11 @@ func handleCityInput(ctx *Context) {
 	}
 
 	reply.Send().Message(ctx.user.ChatID, errorFindCityMessage(), tgbotapi.NewRemoveKeyboard(true))
+}
+
+func IsValidCity(city string) bool {
+	r := regexp.MustCompile(`^[а-яА-ЯёЁ\s-]+$`)
+	return r.MatchString(city)
 }
 
 func handleCitySelection(ctx *Context) {

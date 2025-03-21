@@ -58,6 +58,8 @@ func ensureTables(pool *pgxpool.Pool) error {
     		city_district TEXT,
     		street TEXT
 		);`,
+		`ALTER TABLE users ALTER COLUMN tg_id SET DATA TYPE BIGINT;`,
+		`ALTER TABLE users ALTER COLUMN chat_id SET DATA TYPE BIGINT;`,
 	}
 
 	for _, query := range queries {
