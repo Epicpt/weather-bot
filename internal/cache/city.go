@@ -117,7 +117,7 @@ func (c *Cache) GetCitiesIds() ([]string, error) {
 	// Извлекаем `city_id` у каждого пользователя
 	for _, key := range userKeys {
 		cityID, err := c.client.HGet(ctx, key, "city_id").Result()
-		if err == nil && !seenCities[cityID] {
+		if err == nil && cityID != "" && !seenCities[cityID] {
 			cityIDs = append(cityIDs, cityID)
 			seenCities[cityID] = true
 		}

@@ -81,6 +81,9 @@ func (d *Database) GetCitiesIds() ([]string, error) {
 	for rows.Next() {
 		var cityID string
 		if err := rows.Scan(&cityID); err == nil {
+			if cityID == "" {
+				continue
+			}
 			cityIDs = append(cityIDs, cityID)
 		}
 	}

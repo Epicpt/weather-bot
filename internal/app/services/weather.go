@@ -20,14 +20,14 @@ func (s *WeatherService) SaveWeather(id int, forecast *models.ProcessedForecast)
 	errP = s.Primary.SaveWeather(id, forecast)
 	if errP != nil {
 		monitoring.RedisErrorsTotal.Inc()
-		log.Warn().Err(errP).Int("cityID", id).Msg("Ошибка записи города в Primary хранилище")
+		log.Warn().Err(errP).Msg("Ошибка записи погоды в Primary хранилище")
 	}
 
 	// Пытаемся сохранить во Secondary хранилище
 	errS = s.Secondary.SaveWeather(id, forecast)
 	if errS != nil {
 		monitoring.DBErrorsTotal.Inc()
-		log.Warn().Err(errS).Int("cityID", id).Msg("Ошибка записи города в Secondary хранилище")
+		log.Warn().Err(errS).Msg("Ошибка записи погоды в Secondary хранилище")
 	}
 
 	// Если произошли ошибки на обоих хранилищах, комбинируем ошибки и возвращаем

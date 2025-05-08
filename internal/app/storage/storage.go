@@ -6,7 +6,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Cashe interface {
+type Cache interface {
 	CityStorage
 	UserStorage
 	WeatherStorage

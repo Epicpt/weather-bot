@@ -4,61 +4,14 @@ import (
 	"fmt"
 	"testing"
 	"weather-bot/internal/app/services"
+	"weather-bot/internal/mocks"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-type MockNotificationStorage struct {
-	mock.Mock
-}
-
-func (m *MockNotificationStorage) GetUserNotificationTime(userID int64) (string, error) {
-	args := m.Called(userID)
-	if args.Get(0) == nil {
-		return "", args.Error(1)
-	}
-	return args.Get(0).(string), args.Error(1)
-}
-
-func (m *MockNotificationStorage) RemoveUserNotification(userID int64) error {
-	args := m.Called(userID)
-	return args.Error(0)
-}
-
-func (m *MockNotificationStorage) ScheduleUserNotification(userID int64, executeAt int64) error {
-	args := m.Called(userID, executeAt)
-	return args.Error(0)
-}
-
-func (m *MockNotificationStorage) ScheduleWeatherUpdate(executeAt int64) error {
-	args := m.Called(executeAt)
-	return args.Error(0)
-}
-
-func (m *MockNotificationStorage) RemoveWeatherUpdate() error {
-	args := m.Called()
-	return args.Error(0)
-}
-
-func (m *MockNotificationStorage) GetScheduleWeatherUpdate() ([]redis.XStream, error) {
-	args := m.Called()
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]redis.XStream), args.Error(1)
-}
-func (m *MockNotificationStorage) GetScheduleUserNotifications() ([]redis.XStream, error) {
-	args := m.Called()
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]redis.XStream), args.Error(1)
-}
-
 func TestGetUserNotificationTime_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -77,7 +30,7 @@ func TestGetUserNotificationTime_Success(t *testing.T) {
 }
 
 func TestGetUserNotificationTime_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -95,7 +48,7 @@ func TestGetUserNotificationTime_Error(t *testing.T) {
 }
 
 func TestRemoveUserNotification_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -112,7 +65,7 @@ func TestRemoveUserNotification_Success(t *testing.T) {
 }
 
 func TestRemoveUserNotification_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -129,7 +82,7 @@ func TestRemoveUserNotification_Error(t *testing.T) {
 }
 
 func TestScheduleUserNotification_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -147,7 +100,7 @@ func TestScheduleUserNotification_Success(t *testing.T) {
 }
 
 func TestScheduleUserNotification_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -165,7 +118,7 @@ func TestScheduleUserNotification_Error(t *testing.T) {
 }
 
 func TestScheduleWeatherUpdate_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -182,7 +135,7 @@ func TestScheduleWeatherUpdate_Success(t *testing.T) {
 }
 
 func TestScheduleWeatherUpdate_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -199,7 +152,7 @@ func TestScheduleWeatherUpdate_Error(t *testing.T) {
 }
 
 func TestRemoveWeatherUpdate_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -214,7 +167,7 @@ func TestRemoveWeatherUpdate_Success(t *testing.T) {
 }
 
 func TestRemoveWeatherUpdate_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -229,7 +182,7 @@ func TestRemoveWeatherUpdate_Error(t *testing.T) {
 }
 
 func TestGetScheduleWeatherUpdate_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -247,7 +200,7 @@ func TestGetScheduleWeatherUpdate_Success(t *testing.T) {
 }
 
 func TestGetScheduleWeatherUpdate_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -262,7 +215,7 @@ func TestGetScheduleWeatherUpdate_Error(t *testing.T) {
 }
 
 func TestGetScheduleUserNotifications_Success(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}
@@ -280,7 +233,7 @@ func TestGetScheduleUserNotifications_Success(t *testing.T) {
 }
 
 func TestGetScheduleUserNotifications_Error(t *testing.T) {
-	mockStorage := new(MockNotificationStorage)
+	mockStorage := mocks.NewCache(t)
 	service := &services.NotificationService{
 		Primary: mockStorage,
 	}

@@ -14,11 +14,11 @@ type ServiceContainer struct {
 	UserService         UserService
 	WeatherService      WeatherService
 	NotificationService NotificationService
-	Cache               storage.Cashe
+	Cache               storage.Cache
 	DB                  storage.Database
 }
 
-func Init(primary storage.Cashe, secondary storage.Database) {
+func Init(primary storage.Cache, secondary storage.Database) {
 	globalStorage = &ServiceContainer{
 		CityService:         InitCityService(primary, secondary),
 		UserService:         InitUserService(primary, secondary),

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"weather-bot/internal/app/monitoring"
 	"weather-bot/internal/app/storage"
 	"weather-bot/internal/models"
@@ -51,10 +52,14 @@ func (s *CityService) GetCities(name string) ([]models.City, error) {
 	return nil, &DualStorageError{Primary: errP, Secondary: errS}
 }
 
-func (s *CityService) LoadCities(cities []models.City) {
+func (s *CityService) LoadCities(cities []models.City) error {
 	for _, city := range cities {
-		s.SaveCity(city)
+		if err := s.SaveCity(city); err != nil {
+			return fmt.Errorf("failed to save city %s: %w", city.Name, err)
+		}
+
 	}
+	return nil
 }
 
 func (s *CityService) GetCitiesNames() ([]string, error) {

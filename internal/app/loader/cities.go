@@ -23,7 +23,9 @@ func LoadCities(filePath string, service services.CityService) error {
 
 	log.Info().Msgf("Загружено %d городов из файла", len(cities))
 
-	service.LoadCities(cities)
+	if err = service.LoadCities(cities); err != nil {
+		return err
+	}
 
 	return nil
 }

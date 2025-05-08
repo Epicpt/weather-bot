@@ -91,13 +91,13 @@ func Sticker(forecast models.FullDayForecast) string {
 
 	dominant := getDominantConditionForSticker(weatherList)
 	groups = append(groups, stickers[dominant])
-	if forecast.Day.WindSpeed > 10 {
+	if forecast.Day.WindSpeed > 4 {
 		groups = append(groups, stickers["windy"])
 	}
-	if forecast.Day.Temperature > 25 {
+	if forecast.Day.Temperature > 20 {
 		groups = append(groups, stickers["hot"])
 	}
-	if forecast.Day.Temperature < -5 {
+	if forecast.Day.Temperature < -3 {
 		groups = append(groups, stickers["cold"])
 	}
 
