@@ -30,7 +30,6 @@ func Update(update tgbotapi.Update) {
 	if user == nil {
 		user = models.NewUser(update.Message.From.ID, update.Message.Chat.ID, update.Message.From.FirstName, string(StateNone))
 		log.Info().Int64("id", user.TgID).Msgf("Новый пользователь %s!", user.Name)
-
 	}
 
 	ctx := &Context{

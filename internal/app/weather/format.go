@@ -28,6 +28,10 @@ func FormatDailyForecast(city string, forecast models.FullDayForecast) string {
 			forecast.Night.Temperature, forecast.Night.FeelsLike, forecast.Night.Condition, getWeatherEmoji(forecast.Night.ConditionId))
 	}
 
+	if forecast.Day.WindSpeed > 10 {
+		message += fmt.Sprintf("\n\n💨 ❗️ <b>Сильный ветер:</b> %.f м/с ❗️", forecast.Day.WindSpeed)
+	}
+
 	return message
 }
 

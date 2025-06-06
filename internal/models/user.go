@@ -13,10 +13,11 @@ type User struct {
 
 func NewUser(tgID int64, chatID int64, name, state string) *User {
 	return &User{
-		TgID:   tgID,
-		ChatID: chatID,
-		Name:   name,
-		State:  state,
+		TgID:    tgID,
+		ChatID:  chatID,
+		Name:    name,
+		State:   state,
+		Sticker: true,
 	}
 }
 

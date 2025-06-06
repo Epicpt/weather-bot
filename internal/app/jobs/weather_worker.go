@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const retrysCount = 42
+
 func StartWeatherWorker() {
 	time.Sleep(2 * time.Minute)
 	log.Info().Msg("Воркер ProcessWeatherUpdates запущен...")
@@ -59,14 +61,20 @@ func ProcessWeatherUpdates() {
 						log.Error().Err(err).Msg("Ошибка получения городов из хранилищ")
 						continue
 					}
-					err = weather.Update(cityIDs)
-					if err != nil {
-						monitoring.WeatherUpdateFailed.Inc()
-						log.Error().Err(err).Msg("Ошибка при обновлении погоды")
-					} else {
-						log.Info().Msg("Погода успешно обновлена")
+
+					for range retrysCount {
+						err = weather.Update(cityIDs)
+						if err != nil {
+							monitoring.WeatherUpdateFailed.Inc()
+							log.Error().Err(err).Msg("Ошибка при обновлении погоды")
+
+							time.Sleep(10 * time.Minute)
+						} else {
+							log.Info().Msg("Погода успешно обновлена")
+							monitoring.WeatherUpdateTotal.Inc()
+							break
+						}
 					}
-					monitoring.WeatherUpdateTotal.Inc()
 
 					// Планируем задачу на следующий день
 					ScheduleWeatherUpdate()
