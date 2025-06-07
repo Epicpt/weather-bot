@@ -12,10 +12,8 @@ import (
 	"weather-bot/internal/cache"
 	"weather-bot/internal/config"
 	"weather-bot/internal/database"
-	"weather-bot/pkg/logger"
 	"weather-bot/pkg/telegram"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -31,13 +29,9 @@ type App struct {
 	Bot   *tgbotapi.BotAPI
 	DB    *database.Database
 	Cache *cache.Cache
-	Log   zerolog.Logger
 }
 
 func New(cfg *config.Config) *App {
-	// Инициализация логгера
-	log := logger.New()
-	log.Info().Msg("Logger initialized")
 
 	// Инициализация Postgres
 	pool, err := database.Init(cfg.PostgresURL)
@@ -72,7 +66,6 @@ func New(cfg *config.Config) *App {
 		Bot:   bot,
 		DB:    db,
 		Cache: redis,
-		Log:   log,
 	}
 }
 
@@ -97,7 +90,7 @@ func (a *App) Bootstrap() {
 }
 
 func (a *App) Run() {
-	a.Log.Info().Msg("Bot started")
+	log.Info().Msg("Bot started")
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60

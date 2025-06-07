@@ -23,7 +23,7 @@ func (d *Database) SaveUser(u *models.User) error {
 		log.Error().Err(err).Msg("Ошибка записи юзера в БД")
 	}
 
-	log.Info().Msgf("Пользователь сохранён в БД: tg_id=%d, chat_id=%d, name=%s, city=%s, city_id=%s, region=%v, state=%s, sticker=%v", u.TgID, u.ChatID, u.Name, u.City, u.CityID, u.Region, u.State, u.Sticker)
+	//log.Info().Msgf("Пользователь сохранён в БД: tg_id=%d, chat_id=%d, name=%s, city=%s, city_id=%s, region=%v, state=%s, sticker=%v", u.TgID, u.ChatID, u.Name, u.City, u.CityID, u.Region, u.State, u.Sticker)
 
 	return nil
 }
@@ -44,7 +44,7 @@ func (d *Database) GetUser(userID int64) (*models.User, error) {
 		return nil, fmt.Errorf("ошибка получения пользователя из БД: %w", err)
 	}
 
-	log.Info().Msgf("Пользователь получен из БД: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s, sticker=%v", user.TgID, user.Name, user.City, user.CityID, user.State, user.Sticker)
+	//log.Info().Msgf("Пользователь получен из БД: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s, sticker=%v", user.TgID, user.Name, user.City, user.CityID, user.State, user.Sticker)
 
 	return &user, nil
 }

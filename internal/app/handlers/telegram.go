@@ -37,6 +37,9 @@ func Update(update tgbotapi.Update) {
 		text: update.Message.Text,
 	}
 
+	log.Info().Int64("id", user.TgID).Str("user", user.Name).Str("username", update.Message.From.UserName).Str("city", user.City).Str("state", user.State).Bool("sticker", user.Sticker).
+		Msgf("Пользователь отправил сообщение: %s", update.Message.Text)
+
 	processMessage(ctx)
 
 	// Сохраняем обновленные данные пользователя

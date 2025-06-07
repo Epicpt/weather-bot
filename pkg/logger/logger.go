@@ -5,9 +5,16 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-func New() zerolog.Logger {
+func New() {
 	zerolog.TimeFieldFormat = time.RFC3339
-	return zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	output := zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: "02.01.2006 15:04:05",
+	}
+	log.Logger = log.Output(output)
+	log.With().Timestamp().Logger()
 }

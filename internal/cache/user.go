@@ -33,8 +33,8 @@ func (c *Cache) SaveUser(u *models.User) error {
 		return fmt.Errorf("ошибка записи в Redis: %w", err)
 	}
 
-	log.Info().Msgf("Пользователь сохранён в Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s, sticker=%v",
-		u.TgID, u.Name, u.City, u.CityID, u.State, u.Sticker)
+	//log.Info().Msgf("Пользователь сохранён в Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s, sticker=%v",
+	//	u.TgID, u.Name, u.City, u.CityID, u.State, u.Sticker)
 	return nil
 }
 
@@ -73,7 +73,7 @@ func (c *Cache) GetUser(userId int64) (*models.User, error) {
 		Sticker: stickerBool,
 	}
 
-	log.Info().Msgf("Пользователь получен из Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s", user.TgID, user.Name, user.City, user.CityID, user.State)
+	//log.Info().Msgf("Пользователь получен из Redis: tg_id=%d, name=%s, city=%s, city_id=%s, state=%s", user.TgID, user.Name, user.City, user.CityID, user.State)
 
 	return user, nil
 }
