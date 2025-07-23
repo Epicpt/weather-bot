@@ -14,10 +14,10 @@ var _ storage.CityStorage = (*Database)(nil) // Проверка интерфе�
 func (db *Database) SaveCity(city models.City) error {
 
 	_, err := db.pool.Exec(context.Background(), `
-			INSERT INTO cities (id, name, federal_district, region, city_district, street)
-			VALUES ($1, $2, $3, $4, $5, $6)
-			ON CONFLICT (id) DO UPDATE SET name = $2, federal_district = $3, region = $4, city_district = $5, street = $6`,
-		city.ID, city.Name, city.FederalDistrict, city.Region, city.CityDistrict, city.Street,
+			INSERT INTO cities (id, name, federal_district, region, city_district, street,country)
+			VALUES ($1, $2, $3, $4, $5, $6,$7)
+			ON CONFLICT (id) DO UPDATE SET name = $2, federal_district = $3, region = $4, city_district = $5, street = $6, country = $7`,
+		city.ID, city.Name, city.FederalDistrict, city.Region, city.CityDistrict, city.Street, city.Country,
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("Ошибка записи города в БД")
@@ -32,7 +32,7 @@ func (db *Database) GetCities(name string) ([]models.City, error) {
 	ctx := context.Background()
 
 	rows, err := db.pool.Query(ctx, `
-		SELECT id, name, federal_district, region, city_district, street 
+		SELECT id, name, federal_district, region, city_district, street, country 
 		FROM cities 
 		WHERE name = $1`, name)
 	if err != nil {
@@ -46,7 +46,7 @@ func (db *Database) GetCities(name string) ([]models.City, error) {
 
 	for rows.Next() {
 		var city models.City
-		err := rows.Scan(&city.ID, &city.Name, &city.FederalDistrict, &city.Region, &city.CityDistrict, &city.Street)
+		err := rows.Scan(&city.ID, &city.Name, &city.FederalDistrict, &city.Region, &city.CityDistrict, &city.Street, &city.Country)
 		if err != nil {
 			log.Error().Err(err).Msg("Ошибка чтения данных из БД")
 			continue
@@ -73,10 +73,10 @@ func (d *Database) GetCitiesIds() ([]string, error) {
 	var cityIDs []string
 
 	rows, err := d.pool.Query(ctx, "SELECT DISTINCT city_id FROM users")
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var cityID string
@@ -96,10 +96,10 @@ func (d *Database) GetCitiesNames() ([]string, error) {
 	var citiesNames []string
 
 	rows, err := d.pool.Query(ctx, "SELECT DISTINCT name FROM cities")
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var cityName string

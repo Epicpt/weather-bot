@@ -7,6 +7,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const BG = "BG"
+
 func mainMenu() tgbotapi.ReplyKeyboardMarkup {
 	return tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Узнать погоду")))
 }
@@ -21,6 +23,15 @@ func makeCityKeyboard(cities []models.City) tgbotapi.ReplyKeyboardMarkup {
 		text := fmt.Sprintf("%s|%d", city.Name, city.ID)
 		if city.Region != "" {
 			text = fmt.Sprintf("%s|%d|(%s)", city.Name, city.ID, city.Region)
+		}
+
+		if city.Country != "" { // не российский город
+			var country string
+			switch city.Country {
+			case BG:
+				country = "Болгария"
+			}
+			text += fmt.Sprintf("|(%s)", country)
 		}
 		row := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(text))
 		keyboard = append(keyboard, row)

@@ -60,6 +60,7 @@ func ensureTables(pool *pgxpool.Pool) error {
 		);`,
 		`ALTER TABLE users ALTER COLUMN tg_id SET DATA TYPE BIGINT;`,
 		`ALTER TABLE users ALTER COLUMN chat_id SET DATA TYPE BIGINT;`,
+		`ALTER TABLE cities ADD COLUMN IF NOT EXISTS country TEXT;`,
 	}
 
 	for _, query := range queries {
