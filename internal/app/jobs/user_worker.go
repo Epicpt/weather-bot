@@ -77,7 +77,10 @@ func ProcessUserUpdate() {
 						continue
 					}
 
-					reply.SendDailyWeather(user, forecast)
+					if err := reply.SendDailyWeather(user, forecast); err != nil {
+						monitoring.NotificationsFailedTotal.Inc()
+						continue
+					}
 
 					monitoring.NotificationsSentTotal.Inc()
 

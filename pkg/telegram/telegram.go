@@ -2,7 +2,6 @@ package telegram
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/rs/zerolog/log"
 )
 
 type Telegram struct {
@@ -13,20 +12,22 @@ func New(bot *tgbotapi.BotAPI) *Telegram {
 	return &Telegram{Bot: bot}
 }
 
-func (t *Telegram) Message(chatID int64, text string, keyboard any) {
+func (t *Telegram) Message(chatID int64, text string, keyboard any) error {
 	msg := tgbotapi.NewMessage(chatID, text)
 	msg.ParseMode = "HTML"
 	msg.ReplyMarkup = keyboard
 	_, err := t.Bot.Send(msg)
 	if err != nil {
-		log.Error().Err(err).Int64("chatID", chatID).Str("msg", text).Msg("Ошибка отправки сообщения")
+		return err
 	}
+	return nil
 }
 
-func (t *Telegram) Sticker(chatID int64, stickerID string) {
+func (t *Telegram) Sticker(chatID int64, stickerID string) error {
 	msg := tgbotapi.NewSticker(chatID, tgbotapi.FileID(stickerID))
 	_, err := t.Bot.Send(msg)
 	if err != nil {
-		log.Error().Err(err).Int64("chatID", chatID).Str("sticker", stickerID).Msg("Ошибка отправки стикера")
+		return err
 	}
+	return nil
 }
