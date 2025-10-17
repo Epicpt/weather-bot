@@ -49,3 +49,11 @@ func notificationMenu() tgbotapi.ReplyKeyboardMarkup {
 		),
 	)
 }
+
+func cancelMenu() tgbotapi.ReplyKeyboardMarkup {
+	return tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton("↩ Отмена"),
+		),
+	)
+}

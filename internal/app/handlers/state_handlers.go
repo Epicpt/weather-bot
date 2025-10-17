@@ -20,6 +20,9 @@ const (
 	StateAwaitingCityInput     UserState = "awaiting_city_input"
 	StateAwaitingCitySelection UserState = "awaiting_city_selection"
 	StateAwaitingTimeInput     UserState = "awaiting_time_input"
+
+	StateAwaitingDiffCityInput     UserState = "awating_diff_city_input"
+	StateAwaitingDiffCitySelection UserState = "awaiting_diff_city_selection"
 )
 
 func processMessage(ctx *Context) {
@@ -34,6 +37,12 @@ func processMessage(ctx *Context) {
 		handleCitySelection(ctx)
 	case StateAwaitingTimeInput:
 		handleTimeInput(ctx)
+
+	case StateAwaitingDiffCityInput:
+		handleDiffCityInput(ctx)
+	case StateAwaitingDiffCitySelection:
+		handleDiffCitySelection(ctx)
+
 	default:
 		handleUnknownState(ctx)
 	}
@@ -94,6 +103,9 @@ func handleDefaultState(ctx *Context) {
 			reply.Send().Message(ctx.user.ChatID, "Стикеры включены ✅", mainMenu())
 		}
 
+	case "/diff_city_weather":
+		ctx.user.State = string(StateAwaitingDiffCityInput)
+		reply.Send().Message(ctx.user.ChatID, enterNameDiffCityMessage(), cancelMenu())
 	default:
 		reply.Send().Message(ctx.user.ChatID, "🤷‍♀️ Я не понимаю такую команду, выберите из меню.", mainMenu())
 	}

@@ -26,6 +26,9 @@ func enterNotificationTimeMessage() string {
 func enterNameCityMessage() string {
 	return "✏ Введите название вашего города:"
 }
+func enterNameDiffCityMessage() string {
+	return "✏ Введите название другого города (ваш город не изменится):"
+}
 func errorGetWeatherMessage() string {
 	return "⛔️ Произошла ошибка при получении погоды. Попробуйте повторить позже."
 }
