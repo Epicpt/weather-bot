@@ -128,7 +128,7 @@ func handleDiffCityInput(ctx *Context) {
 	if len(cities) == 1 {
 		ctx.user.State = string(StateNone)
 		city := cities[0]
-		forecast, err := weather.Get(strconv.Itoa(city.ID))
+		forecast, err := weather.GetNewWeather(city.ID)
 		if err != nil {
 			log.Error().Err(err).Int64("user", ctx.user.TgID).Int("cityID", city.ID).Msg("Ошибка при получении погоды")
 			reply.Send().Message(ctx.user.ChatID, errorGetWeatherMessage(), mainMenu())
@@ -201,7 +201,7 @@ func handleDiffCitySelection(ctx *Context) {
 	}
 
 	ctx.user.State = string(StateNone)
-	forecast, err := weather.Get(strconv.Itoa(selectedCity.ID))
+	forecast, err := weather.GetNewWeather(selectedCity.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("user", ctx.user.TgID).Int("cityID", selectedCity.ID).Msg("Ошибка при получении погоды")
 		reply.Send().Message(ctx.user.ChatID, errorGetWeatherMessage(), mainMenu())
