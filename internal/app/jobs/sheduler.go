@@ -20,7 +20,10 @@ func ScheduleWeatherUpdate() error {
 
 	// Вычисляем `executeAt` (00:01 следующего дня)
 	now := time.Now()
-	executeAt := time.Date(now.Year(), now.Month(), now.Day(), 0, 1, 0, 0, now.Location()).Add(24 * time.Hour).Unix()
+	//executeAt := time.Date(now.Year(), now.Month(), now.Day(), 0, 1, 0, 0, now.Location()).Add(24 * time.Hour).Unix()
+
+	// тест на обновление погоды каждые 4 часа
+	executeAt := now.Add(4 * time.Hour).Unix()
 
 	err = notificationService.ScheduleWeatherUpdate(executeAt)
 	if err != nil {
