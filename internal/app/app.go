@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -56,7 +58,26 @@ func New(cfg *config.Config) *App {
 	redis := cache.NewCache(client)
 
 	// Инициализация бота
-	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
+	transport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 30 * time.Second, // чаще слать keep-alive пробники
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		TLSHandshakeTimeout:   10 * time.Second,
+		IdleConnTimeout:       30 * time.Second, // быстро закрывать idle-соединения
+		ResponseHeaderTimeout: 20 * time.Second, // если сервер молчит — не висеть
+		ExpectContinueTimeout: 1 * time.Second,
+		MaxIdleConns:          10,
+		MaxIdleConnsPerHost:   2, // не копить много на один хост (api.telegram.org)
+	}
+
+	cl := &http.Client{
+		Transport: transport,
+		Timeout:   40 * time.Second, // общий таймаут на весь запрос
+	}
+	bot, err := tgbotapi.NewBotAPIWithClient(cfg.BotToken, tgbotapi.APIEndpoint, cl)
+	//bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error creating bot")
 	}
@@ -100,8 +121,12 @@ func (a *App) Run() {
 	// todo: remove after cheburnet
 	go func() {
 		ticker := time.NewTicker(4 * time.Minute)
-		for range ticker.C {
-			_, _ = a.Bot.GetMe()
+		defer ticker.Stop()
+		_, err := a.Bot.GetMe()
+		if err != nil {
+			log.Error().Err(err)
+		} else {
+			log.Info().Msg("Heartbeat OK — соединение живое")
 		}
 	}()
 
