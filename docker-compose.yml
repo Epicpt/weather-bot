@@ -9,8 +9,6 @@ services:
       - amneziawg
     env_file: 
       - .env
-    cap_add:
-      - NET_ADMIN
     network_mode: "service:amneziawg"
     restart: always
 
@@ -88,8 +86,6 @@ services:
     restart: unless-stopped
     networks:
       app_network:
-        aliases:
-          - wg-gateway
 
 networks:
   app_network:

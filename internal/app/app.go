@@ -69,6 +69,7 @@ func New(cfg *config.Config) *App {
 		ExpectContinueTimeout: 1 * time.Second,
 		MaxIdleConns:          100,
 		MaxIdleConnsPerHost:   10,
+		DisableKeepAlives:     true,
 	}
 
 	cl := &http.Client{
