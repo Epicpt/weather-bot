@@ -1,4 +1,3 @@
-
 services:
   bot:
     image: epicpt/weather-bot-bot:latest
@@ -8,9 +7,9 @@ services:
       - postgres
       - prometheus
     env_file: 
-      - .env 
+      - .env
+    network_mode: "container:amneziawg"
     restart: always
-
     
   prometheus:
     image: prom/prometheus:latest
