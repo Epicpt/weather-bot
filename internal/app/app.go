@@ -3,7 +3,6 @@ package app
 import (
 	"os"
 	"path/filepath"
-	"time"
 	"weather-bot/internal/app/handlers"
 	"weather-bot/internal/app/jobs"
 	"weather-bot/internal/app/loader"
@@ -93,20 +92,8 @@ func (a *App) Run() {
 	log.Info().Msg("Bot started")
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 90
+	u.Timeout = 60
 	updates := a.Bot.GetUpdatesChan(u)
-
-	// todo: remove after cheburnet
-	go func() {
-		ticker := time.NewTicker(4 * time.Minute)
-		defer ticker.Stop()
-		_, err := a.Bot.GetMe()
-		if err != nil {
-			log.Error().Err(err)
-		} else {
-			log.Info().Msg("Heartbeat OK — соединение живое")
-		}
-	}()
 
 	for update := range updates {
 		if update.Message == nil { // Пропускаем неполные сообщения
