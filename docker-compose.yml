@@ -8,7 +8,7 @@ services:
       - prometheus
     env_file: 
       - .env
-    network_mode: "container:amneziawg"
+    network_mode: "service:amneziawg"
     restart: always
     
   prometheus:
