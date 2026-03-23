@@ -1,8 +1,6 @@
 package app
 
 import (
-	"net"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -57,27 +55,7 @@ func New(cfg *config.Config) *App {
 	db := database.NewDatabase(pool)
 	redis := cache.NewCache(client)
 
-	// Инициализация бота
-	transport := &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout:   15 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext,
-		TLSHandshakeTimeout:   15 * time.Second,
-		IdleConnTimeout:       90 * time.Second,
-		ResponseHeaderTimeout: 90 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		MaxIdleConns:          100,
-		MaxIdleConnsPerHost:   10,
-		DisableKeepAlives:     true,
-	}
-
-	cl := &http.Client{
-		Transport: transport,
-		Timeout:   120 * time.Second,
-	}
-	bot, err := tgbotapi.NewBotAPIWithClient(cfg.BotToken, tgbotapi.APIEndpoint, cl)
-	//bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
+	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error creating bot")
 	}
