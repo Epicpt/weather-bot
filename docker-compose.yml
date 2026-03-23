@@ -3,10 +3,14 @@ services:
     image: epicpt/weather-bot-bot:latest
     container_name: bot_container
     depends_on:
-      - redis
-      - postgres
-      - prometheus
-      - amneziawg
+     redis:
+      condition: service_healthy
+
+     postgres:
+       condition: service_healthy
+
+     amneziawg:
+       condition: service_healthy
     env_file: 
       - .env
     network_mode: "service:amneziawg"
@@ -45,6 +49,11 @@ services:
     volumes:
       - redis_data:/data
     command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - app_network
 
@@ -80,6 +89,11 @@ services:
       - TZ=Etc/UTC
     volumes:
       - ./wireguard:/config
+    healthcheck:
+      test: [ "CMD-SHELL", "awg show | grep -q 'latest handshake' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1
