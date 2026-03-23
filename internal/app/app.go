@@ -60,21 +60,20 @@ func New(cfg *config.Config) *App {
 	// Инициализация бота
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
-			Timeout:   10 * time.Second,
-			KeepAlive: 30 * time.Second, // чаще слать keep-alive пробники
+			Timeout:   15 * time.Second,
+			KeepAlive: 30 * time.Second,
 		}).DialContext,
-		ForceAttemptHTTP2:     true,
-		TLSHandshakeTimeout:   10 * time.Second,
-		IdleConnTimeout:       30 * time.Second, // быстро закрывать idle-соединения
-		ResponseHeaderTimeout: 20 * time.Second, // если сервер молчит — не висеть
+		TLSHandshakeTimeout:   15 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
+		ResponseHeaderTimeout: 90 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		MaxIdleConns:          10,
-		MaxIdleConnsPerHost:   2, // не копить много на один хост (api.telegram.org)
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
 	}
 
 	cl := &http.Client{
 		Transport: transport,
-		Timeout:   40 * time.Second, // общий таймаут на весь запрос
+		Timeout:   120 * time.Second,
 	}
 	bot, err := tgbotapi.NewBotAPIWithClient(cfg.BotToken, tgbotapi.APIEndpoint, cl)
 	//bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
@@ -115,7 +114,7 @@ func (a *App) Run() {
 	log.Info().Msg("Bot started")
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 600
+	u.Timeout = 90
 	updates := a.Bot.GetUpdatesChan(u)
 
 	// todo: remove after cheburnet
